@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../dio/auth_service.dart';
+import '../dio/services/auth_service.dart';
+import '../dio/services/shared_prefs_service.dart';
 
 /// 🔹 **Провайдер для AuthService**
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());
@@ -30,7 +31,7 @@ class AuthNotifier extends StateNotifier<String?> {
 
   /// 🔹 **Загрузка сохранённого токена**
   Future<void> _loadToken() async {
-    state = await _authService.getToken();
+    state = await SharedPrefsService.getToken();
   }
 
   /// 🔹 **Выход из системы**
