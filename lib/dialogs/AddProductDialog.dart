@@ -1,25 +1,89 @@
 import 'dart:ffi';
+import 'dart:io';
 
+import 'package:chaynik/models/category.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
+import '../dio/db/category_db.dart';
+import '../dio/services/product_service.dart';
+import '../repositories/category_repository.dart';
 import 'AddCategoryDialog.dart';
 
 void showAddProductDialog(BuildContext context) {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final CategoryRepository _categoryRepository = CategoryRepository();
+
+  final ProductService _productService = ProductService();
 
   String _product_name = '';
   double _product_price = 0.0;
 
+  File? _image;
+  final ImagePicker _picker = ImagePicker();
 
-  List<String> _categories = ["Категория 1", "Категория 2", "Категория 3"];
+
+  List<Category> _categories = [];
   String? _selectedCategory;
+
+
 
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return StatefulBuilder( // 🔹 Используем StatefulBuilder для обновления состояния
         builder: (context, setState) {
+
+          /// 🔹 **Асинхронная загрузка категорий**
+          Future<void> _fetchCategories() async {
+            List<Category> localCategories = await _categoryRepository.getCategoriesFromLocal();
+            setState(() {
+              _categories = localCategories;
+            }); // Обновляем UI после загрузки
+          }
+
+
+          Future<bool> _requestStoragePermission() async {
+            var status = await Permission.manageExternalStorage.request();
+
+            if (status.isGranted) {
+              return true; // Разрешение уже предоставлено
+            } else if (status.isDenied) {
+              status = await Permission.storage.request();
+              return status.isGranted;
+            } else if (status.isPermanentlyDenied) {
+              print("Разрешение навсегда отклонено, откройте настройки приложения.");
+              openAppSettings();
+              return false;
+            }
+
+            return false;
+          }
+
+
+          Future<void> _pickImage() async {
+            // Запрашиваем разрешения
+            if (await _requestStoragePermission()) {
+              final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+              if (pickedFile != null) {
+                setState(() {
+                  _image = File(pickedFile.path);
+                });
+              }
+            } else {
+              print("Нет разрешения на доступ к галерее");
+            }
+          }
+
+
+
+          /// 🔹 **Загрузка данных, если список категорий пуст**
+          if (_categories.isEmpty) {
+            _fetchCategories();
+          }
+
           return AlertDialog(
             title: Text("Добавить новый товар"),
             content: Form(
@@ -60,8 +124,8 @@ void showAddProductDialog(BuildContext context) {
                       hint: Text("Выберите категорию"),
                       items: [
                         ..._categories.map((category) => DropdownMenuItem<String>(
-                          value: category,
-                          child: Text(category),
+                          value: category.id.toString(),
+                          child: Text(category.title),
                         )),
                         DropdownMenuItem<String>(
                           value: "add_category",
@@ -81,6 +145,12 @@ void showAddProductDialog(BuildContext context) {
                         }
                       },
                     ),
+                    _image != null
+                        ? Image.file(_image!, height: 200, width: 200, fit: BoxFit.cover)
+                        : ElevatedButton(
+                      onPressed: _pickImage,
+                      child: Text("Выбрать изображение"),
+                    ),
                   ],
                 ),
               ),
@@ -91,9 +161,23 @@ void showAddProductDialog(BuildContext context) {
                 child: Text("Отмена"),
               ),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
+
+                    bool success = await _productService.addProduct(
+                      _product_name,
+                      _product_price,
+                      _image!.path,
+                      int.parse(_selectedCategory!),
+                    );
+
+                    if (success) {
+                      print("Продукт успешно добавлен!");
+                    } else {
+                      print("Ошибка добавления продукта.");
+                    }
+
                     print("Название: $_product_name, Цена: $_product_price, Категория: $_selectedCategory");
                     Navigator.of(context).pop();
                   }

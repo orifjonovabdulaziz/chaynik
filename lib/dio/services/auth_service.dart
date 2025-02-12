@@ -1,7 +1,11 @@
 import 'package:chaynik/dio/services/shared_prefs_service.dart';
 import 'package:dio/dio.dart';
 
+import '../../models/category.dart';
+import '../../repositories/category_repository.dart';
+import '../db/category_db.dart';
 import 'api_service.dart';
+import 'category_service.dart';
 
 
 class AuthService {
@@ -16,6 +20,8 @@ class AuthService {
       if (response.statusCode == 200) {
         String token = response.data['token'];
         await SharedPrefsService.saveToken(token); // Сохраняем токен локально
+        // await _saveCategoriesToLocalDB();
+        await CategoryRepository().getCategoriesFromServerAndSave();
         return token;
       }
     } on DioException catch (e) {
@@ -39,4 +45,15 @@ class AuthService {
       return "Что-то пошло не так";
     }
   }
+
+  // Future<void> _saveCategoriesToLocalDB() async {
+  //   try {
+  //     List<Category> categories = await CategoryService.getCategories();
+  //     await CategoryDatabase.instance.insertCategories(categories);
+  //     print("Категории успешно сохранены в локальную базу данных");
+  //   } catch (e) {
+  //     print("Ошибка загрузки категорий: $e");
+  //   }
+  // }
 }
+
