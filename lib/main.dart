@@ -1,4 +1,5 @@
 import 'package:chaynik/provider/auth_provider.dart';
+import 'package:chaynik/router/router.dart';
 import 'package:chaynik/screens/AuthScreen.dart';
 import 'package:chaynik/screens/HomeScreen.dart';
 import 'package:chaynik/screens/SplashScreen.dart';
@@ -14,18 +15,15 @@ class MyApp extends ConsumerWidget  {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return MaterialApp(
+    final router = ref.watch(routerProvider);
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'Chaynik App',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
         useMaterial3: true,
       ),
-      home: SplashScreen(),
-      routes: {
-        '/home': (context) => HomeScreen(),
-        '/auth': (context) => AuthPage(),
-      },
+      routerConfig: router,
     );
   }
 }

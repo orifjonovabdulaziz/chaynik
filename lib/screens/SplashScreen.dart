@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -21,9 +22,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // Переход в нужный экран
     if (token != null && token.isNotEmpty) {
-      Navigator.pushReplacementNamed(context, '/home');
+      context.go('/home');
     } else {
-      Navigator.pushReplacementNamed(context, '/auth');
+      context.go('/auth');
     }
   }
 

@@ -18,7 +18,7 @@ class ProductService {
   }
 
   /// 🔹 **Добавить новый продукт**
-  Future<bool> addProduct(String title, double price, String imagePath, int categoryId) async {
+  Future<Product?> addProduct(String title, double price, String imagePath, int categoryId) async {
     try {
       // Подготовка данных для отправки
       FormData formData = FormData.fromMap({
@@ -35,11 +35,11 @@ class ProductService {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         print("Продукт успешно добавлен");
-        return true;
+        return Product.fromJson(response.data);
       }
     } catch (e) {
       print("Ошибка добавления продукта: $e");
     }
-    return false;
+    return null;
   }
 }

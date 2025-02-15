@@ -20,4 +20,7 @@ class SharedPrefsService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_authTokenKey);
   }
+
+
+
 }

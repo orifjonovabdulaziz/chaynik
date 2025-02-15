@@ -7,7 +7,6 @@ import '../db/category_db.dart';
 import 'api_service.dart';
 import 'category_service.dart';
 
-
 class AuthService {
   /// 🔹 **POST-запрос на авторизацию**
   Future<String?> login(String email, String password) async {
@@ -45,15 +44,4 @@ class AuthService {
       return "Что-то пошло не так";
     }
   }
-
-  // Future<void> _saveCategoriesToLocalDB() async {
-  //   try {
-  //     List<Category> categories = await CategoryService.getCategories();
-  //     await CategoryDatabase.instance.insertCategories(categories);
-  //     print("Категории успешно сохранены в локальную базу данных");
-  //   } catch (e) {
-  //     print("Ошибка загрузки категорий: $e");
-  //   }
-  // }
 }
-

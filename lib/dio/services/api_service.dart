@@ -5,12 +5,17 @@ import '../interceptors/interceptor.dart';
 class ApiService {
   static final Dio _dio = Dio(BaseOptions(
     baseUrl: "https://api.chaynik.uz",  // Базовый URL
-    connectTimeout: Duration(seconds: 10),
-    receiveTimeout: Duration(seconds: 10),
+    connectTimeout: Duration(seconds: 15),
+    receiveTimeout: Duration(seconds: 15),
   ));
 
-  static Dio get dio {
-    _dio.interceptors.add(AuthInterceptor()); // Добавляем интерцептор
+  static final Dio _dioInstance = _initDio();
+
+  static Dio _initDio() {
+    _dio.interceptors.clear(); // Очищаем все интерцепторы
+    _dio.interceptors.add(AuthInterceptor()); // Добавляем один раз
     return _dio;
   }
+
+  static Dio get dio => _dioInstance;
 }

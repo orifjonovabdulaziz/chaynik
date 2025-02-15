@@ -2,6 +2,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../provider/auth_provider.dart';
 
@@ -23,6 +24,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   bool isLoading = false;
 
   Future<void> _login() async {
+    if (isLoading) return;
     setState(() => isLoading = true);
     final success = await ref.read(authProvider.notifier).login(
       _userlogin.trim(),
@@ -32,7 +34,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     setState(() => isLoading = false);
 
     if (success) {
-      Navigator.pushReplacementNamed(context, '/home'); // Переход в HomeScreen
+      context.go('/home');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Неправильный логин или пароль")),
