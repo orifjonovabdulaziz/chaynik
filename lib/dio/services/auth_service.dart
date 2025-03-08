@@ -1,4 +1,5 @@
 import 'package:chaynik/dio/services/shared_prefs_service.dart';
+import 'package:chaynik/repositories/product_repository.dart';
 import 'package:dio/dio.dart';
 
 import '../../models/category.dart';
@@ -21,6 +22,7 @@ class AuthService {
         await SharedPrefsService.saveToken(token); // Сохраняем токен локально
         // await _saveCategoriesToLocalDB();
         await CategoryRepository().getCategoriesFromServerAndSave();
+        await ProductRepository().getProductsFromServerAndSave();
         return token;
       }
     } on DioException catch (e) {
@@ -36,7 +38,6 @@ class AuthService {
     try {
       Response response = await ApiService.dio.get('/api/accounts/logout/');
       if (response.statusCode == 200) {
-        await SharedPrefsService.removeToken();
         return "Выход выполнен";
       }
       return null;

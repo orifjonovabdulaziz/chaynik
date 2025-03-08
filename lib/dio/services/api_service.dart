@@ -4,7 +4,7 @@ import '../interceptors/interceptor.dart';
 
 class ApiService {
   static final Dio _dio = Dio(BaseOptions(
-    baseUrl: "https://api.chaynik.uz",  // Базовый URL
+    baseUrl: "https://back.chaynik.uz",  // Базовый URL
     connectTimeout: Duration(seconds: 15),
     receiveTimeout: Duration(seconds: 15),
   ));

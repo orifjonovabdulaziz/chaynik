@@ -73,8 +73,44 @@ class ProductDatabase {
     });
   }
 
+  Future<void> deleteProduct(int productId) async {
+    final db = await database;
+    await db.delete(
+      'products',
+      where: 'id = ?',
+      whereArgs: [productId],
+    );
+  }
+
   Future<void> deleteAllProducts() async {
     final db = await database;
     await db.delete('products');
   }
+
+
+  Future<void> updateProduct(int productId, {
+    String? title,
+    int? category,
+    String? image,
+    double? price
+  }) async {
+    final db = await database;
+
+    // Создаём Map только с теми полями, которые не null
+    Map<String, dynamic> updateData = {};
+
+    if (title != null) updateData["title"] = title;
+    if (category != null) updateData["categoryId"] = category;
+    if (image != null) updateData["imageUrl"] = image;
+    if (price != null) updateData["price"] = price;
+
+
+    await db.update(
+      'products',
+      updateData,
+      where: 'id = ?',
+      whereArgs: [productId],
+    );
+  }
+
 }

@@ -5,8 +5,12 @@ import 'package:chaynik/screens/AuthScreen.dart';
 import 'package:chaynik/screens/HomeScreen.dart';
 import 'package:chaynik/screens/SplashScreen.dart';
 
+import '../screens/Products.dart';
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/',
     routes: [
       GoRoute(
@@ -22,6 +26,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/auth',
         name: 'auth',
         builder: (context, state) => AuthPage(),
+      ),
+      GoRoute(
+        path: '/products',
+        name: 'products',
+        builder: (context, state) => ProductsScreen(),
       ),
     ],
     // Добавляем редирект для проверки авторизации

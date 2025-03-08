@@ -3,21 +3,26 @@ import '../models/category.dart';
 import '../repositories/category_repository.dart';
 
 
-final categoryProvider = StateNotifierProvider<CategoryNotifier, List<Category>>(
+final categoryProvider = StateNotifierProvider<CategoryNotifier, AsyncValue<List<Category>>>(
       (ref) => CategoryNotifier(CategoryRepository()),
 );
 
 
-class CategoryNotifier extends StateNotifier<List<Category>> {
+class CategoryNotifier extends StateNotifier<AsyncValue<List<Category>>> {
   final CategoryRepository _repository;
 
-  CategoryNotifier(this._repository) : super([]) {
+  CategoryNotifier(this._repository) : super(const AsyncValue.loading()) {
     fetchCategories();
   }
 
   Future<void> fetchCategories() async {
-    final categories = await _repository.getCategoriesFromLocal();
-    state = categories;
+    try {
+      state = const AsyncValue.loading();
+      final categories = await _repository.getCategoriesFromLocal();
+      state = AsyncValue.data(categories);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
   }
 
   Future<void> addCategory(String title) async {

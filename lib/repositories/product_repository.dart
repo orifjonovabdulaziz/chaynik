@@ -37,4 +37,55 @@ class ProductRepository {
     }
     return false;
   }
+
+  Future<bool> deleteProduct(int productId) async {
+    try {
+      final success = await _productService.deleteProduct(productId);
+      if (success) {
+        // Удаляем продукт из локальной базы данных
+        await _productDb.deleteProduct(productId);
+      }
+      return success;
+    } catch (e) {
+      print("Ошибка в репозитории при удалении продукта: $e");
+      throw e; // Пробрасываем ошибку дальше для обработки в UI
+    }
+  }
+
+
+  Future<bool> updateProduct(int productId, {
+    String? title,
+    int? category,
+    String? image,
+    double? price
+  }) async {
+    try {
+      // 1️⃣ Обновляем продукт в API
+      final success = await _productService.updateProduct(
+        productId,
+        title: title,
+        category: category,
+        image: image,
+        price: price,
+      );
+
+      if (success) {
+        // 2️⃣ Если API обновление успешно, обновляем продукт в локальной БД
+        await _productDb.updateProduct(
+          productId,
+          title: title,
+          category: category,
+          image: "http://back.chaynik.uz/media/${image?.split("/").last}",
+          price: price,
+        );
+      }
+
+      return success;
+    } catch (e) {
+      print("❌ Ошибка в репозитории при обновлении продукта: $e");
+      throw e; // Пробрасываем ошибку дальше для обработки в UI
+    }
+  }
+
+
 }

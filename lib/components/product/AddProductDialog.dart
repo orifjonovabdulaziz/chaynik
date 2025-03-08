@@ -11,12 +11,12 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import '../dio/db/category_db.dart';
-import '../dio/services/product_service.dart';
-import '../provider/category_provider.dart';
-import '../repositories/category_repository.dart';
-import '../repositories/product_repository.dart';
-import 'AddCategoryDialog.dart';
+import '../../dio/db/category_db.dart';
+import '../../dio/services/product_service.dart';
+import '../../provider/category_provider.dart';
+import '../../repositories/category_repository.dart';
+import '../../repositories/product_repository.dart';
+import '../category/AddCategoryDialog.dart';
 
 void showAddProductDialog(BuildContext context, WidgetRef ref) {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -36,7 +36,7 @@ void showAddProductDialog(BuildContext context, WidgetRef ref) {
     context: context,
     builder: (BuildContext context) {
       return Consumer(builder: (context, ref, _) {
-        final _categories = ref.watch(categoryProvider);
+        final categoriesAsync = ref.watch(categoryProvider);
 
         return StatefulBuilder(
           // 🔹 Используем StatefulBuilder для обновления состояния
@@ -110,40 +110,49 @@ void showAddProductDialog(BuildContext context, WidgetRef ref) {
                         },
                         keyboardType: TextInputType.number,
                       ),
-                      DropdownButton<String>(
-                        value: _selectedCategory,
-                        hint: Text("Выберите категорию"),
-                        items: [
-                          ..._categories
-                              .map((category) => DropdownMenuItem<String>(
-                                    value: category.id.toString(),
-                                    child: Text(category.title),
-                                  )),
-                          DropdownMenuItem<String>(
-                            value: "add_category",
-                            child: Text(
-                              "➕ Добавить категорию",
-                              style: TextStyle(color: Colors.blue),
+                      categoriesAsync.when(
+                        data: (categories) => DropdownButton<String>(
+                          value: _selectedCategory,
+                          hint: Text("Выберите категорию"),
+                          items: [
+                            ...categories
+                                .map((category) => DropdownMenuItem<String>(
+                                      value: category.id.toString(),
+                                      child: Text(category.title),
+                                    )),
+                            DropdownMenuItem<String>(
+                              value: "add_category",
+                              child: Text(
+                                "➕ Добавить категорию",
+                                style: TextStyle(color: Colors.blue),
+                              ),
                             ),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          if (value == "add_category") {
-                            showAddCategoryDialog(context, ref);
-                          } else {
-                            setState(() {
-                              _selectedCategory =
-                                  value; // 🔹 Обновляем выбранную категорию
-                            });
-                          }
-                        },
+                          ],
+                          onChanged: (value) {
+                            if (value == "add_category") {
+                              showAddCategoryDialog(context, ref);
+                            } else {
+                              setState(() {
+                                _selectedCategory =
+                                    value; // 🔹 Обновляем выбранную категорию
+                              });
+                            }
+                          },
+                        ),
+                        loading: () =>
+                            Center(child: CircularProgressIndicator()),
+                        error: (error, stack) =>
+                            Text('Ошибка загрузки категорий: $error'),
                       ),
                       _image != null
-                          ? Image.file(_image!,
-                              height: 200, width: 200, fit: BoxFit.cover)
-                          : ElevatedButton(
-                              onPressed: _pickImage,
-                              child: Text("Выбрать изображение"),
+                          ? GestureDetector(
+                              onTap: _pickImage,
+                              child: Image.file(_image!,
+                                  height: 200, width: 200, fit: BoxFit.cover),
+                            )
+                          : GestureDetector(
+                              onTap: _pickImage,
+                              child: Image.asset("lib/images/add_image.png"),
                             ),
                     ],
                   ),
@@ -158,18 +167,12 @@ void showAddProductDialog(BuildContext context, WidgetRef ref) {
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
-
-                      // bool success = await _productRepository.addProduct(
-                      //     _product_name,
-                      //     _product_price,
-                      //     _image!.path,
-                      //     int.parse(_selectedCategory!));
-                      await ref
-                          .read(productProvider.notifier)
-                          .addProduct(_product_name, _product_price,
-                              _image!.path, int.parse(_selectedCategory!));
+                      await ref.read(productProvider.notifier).addProduct(
+                          _product_name,
+                          _product_price,
+                          _image!.path,
+                          int.parse(_selectedCategory!));
                       context.pop();
-
 
                       print(
                           "Название: $_product_name, Цена: $_product_price, Категория: $_selectedCategory");

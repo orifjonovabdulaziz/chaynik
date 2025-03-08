@@ -7,6 +7,7 @@ class ProductService {
   Future<List<Product>> getProducts() async {
     try {
       Response response = await ApiService.dio.get('/api/product/');
+      print(response.data);
       if (response.statusCode == 200) {
         List data = response.data;
         return data.map((json) => Product.fromJson(json)).toList();
@@ -18,13 +19,14 @@ class ProductService {
   }
 
   /// 🔹 **Добавить новый продукт**
-  Future<Product?> addProduct(String title, double price, String imagePath, int categoryId) async {
+  Future<Product?> addProduct(
+      String title, double price, String imagePath, int categoryId) async {
     try {
-      // Подготовка данных для отправки
       FormData formData = FormData.fromMap({
         "title": title,
         "price": price.toString(),
-        "image": await MultipartFile.fromFile(imagePath, filename: imagePath.split('/').last),
+        "image": await MultipartFile.fromFile(imagePath,
+            filename: imagePath.split('/').last),
         "category": categoryId,
       });
 
@@ -32,6 +34,7 @@ class ProductService {
         '/api/product/',
         data: formData,
       );
+      print(response.data);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         print("Продукт успешно добавлен");
@@ -42,4 +45,76 @@ class ProductService {
     }
     return null;
   }
+
+  /// 🔹 **Удалить продукт**
+  Future<bool> deleteProduct(int productId) async {
+    try {
+      Response response =
+          await ApiService.dio.delete('/api/product/$productId/');
+
+      if (response.statusCode == 204 || response.statusCode == 200) {
+        print("Продукт успешно удален");
+        return true;
+      }
+
+      print(
+          "Ошибка удаления продукта: Неожиданный статус код ${response.statusCode}");
+      return false;
+    } catch (e) {
+      print("Ошибка удаления продукта: $e");
+      rethrow; // Пробрасываем ошибку дальше для обработки в repository
+    }
+  }
+
+  /// 🔹 **Изменение продукта (PATCH)**
+  Future<bool> updateProduct(int productId, {
+    String? title,
+    int? category,
+    String? image,
+    double? price,
+  }) async {
+    try {
+      // Создаём `FormData`
+      FormData formData = FormData();
+
+      if (title != null) formData.fields.add(MapEntry("title", title));
+      if (category != null) formData.fields.add(MapEntry("category", category.toString()));
+      if (price != null) formData.fields.add(MapEntry("price", price.toString()));
+
+      if (image != null) {
+        formData.files.add(MapEntry(
+          "image",
+          await MultipartFile.fromFile(image, filename: image.split('/').last),
+        ));
+      }
+
+      if (formData.fields.isEmpty && formData.files.isEmpty) {
+        print("❌ Ошибка: Нет данных для обновления");
+        return false;
+      }
+
+      Response response = await ApiService.dio.patch(
+        '/api/product/$productId/',
+        data: formData,
+        options: Options(headers: {
+          "Content-Type": "multipart/form-data",
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print("✅ Продукт успешно обновлён");
+        return true;
+      }
+
+      print("❌ Ошибка обновления продукта: Код ${response.statusCode}");
+      return false;
+    } catch (e) {
+      print("❌ Ошибка обновления продукта: $e");
+      rethrow;
+    }
+  }
+
+
+
+
 }

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../provider/category_provider.dart';
-import '../repositories/category_repository.dart';
+import '../../provider/category_provider.dart';
+import '../../repositories/category_repository.dart';
 
 void showAddCategoryDialog(BuildContext context, WidgetRef ref) {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();

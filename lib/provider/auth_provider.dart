@@ -1,7 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../dio/services/auth_service.dart';
 import '../dio/services/shared_prefs_service.dart';
+import '../router/router.dart';
 
 /// 🔹 **Провайдер для AuthService**
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());
@@ -36,7 +40,16 @@ class AuthNotifier extends StateNotifier<String?> {
 
   /// 🔹 **Выход из системы**
   Future<void> logout() async {
-    await _authService.logout();
-    state = null;
+    try {
+      await _authService.logout();
+    } catch (e) {
+      print('Logout error: $e');
+    } finally {
+      // Очищаем токен в любом случае
+      await SharedPrefsService.removeToken();
+      state = null;
+
+      rootNavigatorKey.currentContext?.go('/auth');
+    }
   }
 }
