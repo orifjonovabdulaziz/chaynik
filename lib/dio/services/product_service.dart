@@ -67,7 +67,8 @@ class ProductService {
   }
 
   /// 🔹 **Изменение продукта (PATCH)**
-  Future<bool> updateProduct(int productId, {
+  Future<bool> updateProduct(
+    int productId, {
     String? title,
     int? category,
     String? image,
@@ -78,8 +79,10 @@ class ProductService {
       FormData formData = FormData();
 
       if (title != null) formData.fields.add(MapEntry("title", title));
-      if (category != null) formData.fields.add(MapEntry("category", category.toString()));
-      if (price != null) formData.fields.add(MapEntry("price", price.toString()));
+      if (category != null)
+        formData.fields.add(MapEntry("category", category.toString()));
+      if (price != null)
+        formData.fields.add(MapEntry("price", price.toString()));
 
       if (image != null) {
         formData.files.add(MapEntry(
@@ -113,8 +116,4 @@ class ProductService {
       rethrow;
     }
   }
-
-
-
-
 }

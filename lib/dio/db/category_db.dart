@@ -50,4 +50,28 @@ class CategoryDatabase {
     final result = await db.query('categories');
     return result.map((json) => Category.fromJson(json)).toList();
   }
+
+  Future<void> deleteCategory(int categoryId) async {
+    final db = await database;
+    await db.delete(
+      'categories',
+      where: 'id = ?',
+      whereArgs: [categoryId],
+    );
+  }
+
+  Future<void> deleteAllCategories() async {
+    final db = await database;
+    await db.delete('categories');
+  }
+
+  Future<void> updateCategory(int categoryId, String title) async {
+    final db = await database;
+    await db.update(
+      'categories',
+      {'title': title},
+      where: 'id = ?',
+      whereArgs: [categoryId],
+    );
+  }
 }

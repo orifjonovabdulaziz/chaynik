@@ -1,3 +1,4 @@
+import 'package:chaynik/screens/Categories.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,6 +32,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/products',
         name: 'products',
         builder: (context, state) => ProductsScreen(),
+      ),
+      GoRoute(
+        path: '/categories',
+        name: 'categories',
+        builder: (context, state) => CategoriesScreen(),
       ),
     ],
     // Добавляем редирект для проверки авторизации

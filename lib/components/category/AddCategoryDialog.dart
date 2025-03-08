@@ -18,7 +18,7 @@ void showAddCategoryDialog(BuildContext context, WidgetRef ref) {
         content: Form(
           key: _formKey,
           child: TextFormField(
-            decoration: InputDecoration(labelText: "Название товара"),
+            decoration: InputDecoration(labelText: "Название категории"),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return "Please enter some text";

@@ -41,4 +41,32 @@ class CategoryRepository {
     }
     return false;
   }
+
+  Future<bool> deleteCategory(int categoryId) async {
+     try{
+       final success = await _categoryService.deleteCategory(categoryId);
+       if(success){
+         await _categoryDatabase.deleteCategory(categoryId);
+         print("Категория успешно удалена");
+       }
+       return success;
+     } catch (e){
+       print("Ошибка удаления категории: $e");
+       throw e;
+     }
+  }
+
+  Future<bool> updateCategory(int categoryId, String title) async {
+    try{
+      final success = await _categoryService.updateCategory(categoryId, title);
+      if(success){
+        await _categoryDatabase.updateCategory(categoryId, title);
+        print("Категория успешно обновлена");
+      }
+      return success;
+    } catch (e){
+      print("Ошибка обновления категории: $e");
+      throw e;
+    }
+  }
 }

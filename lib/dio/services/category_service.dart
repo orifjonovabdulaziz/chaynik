@@ -33,4 +33,39 @@ class CategoryService {
     }
     return null;
   }
+
+  Future<bool> deleteCategory(int categoryId) async {
+     try{
+       Response response = await ApiService.dio.delete('/api/category/$categoryId/');
+       if(response.statusCode == 204 || response.statusCode == 200){
+         print("Категория успешно удалена");
+         return true;
+       }
+       print(
+           "Ошибка удаления категории: Неожиданный статус код ${response.statusCode}");
+       return false;
+
+     } catch (e) {
+       print("Ошибка удаления категории: $e");
+       rethrow; // Пробрасываем ошибку дальше для обработки в repository
+     }
+  }
+
+  Future<bool> updateCategory(int categoryId, String title) async {
+    try {
+      Response response = await ApiService.dio.patch(
+        '/api/category/$categoryId/',
+        data: {"title": title},
+      );
+      if (response.statusCode == 200) {
+        print("Категория успешно обновлена");
+        return true;
+      }
+      print("❌ Ошибка обновления категории: Код ${response.statusCode}");
+      return false;
+    } catch (e) {
+      print("Ошибка обновления категории: ${e}");
+    }
+    return false;
+  }
 }

@@ -31,6 +31,22 @@ class CategoryNotifier extends StateNotifier<AsyncValue<List<Category>>> {
       fetchCategories();
     }
   }
+
+  Future<void> deleteCategory(int categoryId) async {
+    try{
+      await _repository.deleteCategory(categoryId);
+      fetchCategories();
+    }catch(e){
+      print("Ошибка удаления категории: $e");
+    }
+  }
+
+  Future<void> updateCategory(int categoryId, {String? title}) async {
+    bool success = await _repository.updateCategory(categoryId, title!);
+    if (success) {
+      fetchCategories();
+    }
+  }
 }
 
 

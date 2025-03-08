@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../components/product/ProductCard.dart';
 import '../components/product/show_delete_product_dialog.dart';
 import '../components/product/show_update_product_dialog.dart';
 import '../components/shared/drawer.dart';
@@ -30,13 +31,13 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Продукты'),
-          leading: Builder(
-            builder: (context) => IconButton(
-              icon: Icon(Icons.menu),
-              onPressed: () =>
-                  Scaffold.of(context).openDrawer(), // Открывает Drawer
-            ),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: () =>
+                Scaffold.of(context).openDrawer(), // Открывает Drawer
           ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -68,7 +69,8 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                       child: FilterChip(
                         selected: selectedCategoryId == null,
                         label: const Text('Все'),
-                        onSelected: (_) => setState(() => selectedCategoryId = null),
+                        onSelected: (_) =>
+                            setState(() => selectedCategoryId = null),
                       ),
                     );
                   }
@@ -78,7 +80,8 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                     child: FilterChip(
                       selected: selectedCategoryId == category.id,
                       label: Text(category.title),
-                      onSelected: (_) => setState(() => selectedCategoryId = category.id),
+                      onSelected: (_) =>
+                          setState(() => selectedCategoryId = category.id),
                     ),
                   );
                 },
@@ -94,7 +97,9 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
               data: (products) {
                 final filteredProducts = selectedCategoryId == null
                     ? products
-                    : products.where((p) => p.categoryId == selectedCategoryId).toList();
+                    : products
+                        .where((p) => p.categoryId == selectedCategoryId)
+                        .toList();
 
                 if (filteredProducts.isEmpty) {
                   return const Center(
@@ -114,7 +119,10 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                         error: (_, __) => 'Ошибка',
                         data: (categories) => categories
                             .firstWhere((c) => c.id == product.categoryId,
-                            orElse: () => Category(id: 0, title: 'Неизвестно', productCount: 0))
+                                orElse: () => Category(
+                                    id: 0,
+                                    title: 'Неизвестно',
+                                    productCount: 0))
                             .title,
                       ),
                       onEdit: () {
@@ -124,14 +132,12 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                         showDeleteProductDialog(context, ref, product);
                       },
                     );
-
                   },
                 );
               },
             ),
           ),
-      const SizedBox(height: 100)
-
+          const SizedBox(height: 100)
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -142,93 +148,4 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
   }
 }
 
-// Обновленный ProductCard
-class ProductCard extends StatelessWidget {
-  final Product product;
-  final String categoryName;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
 
-  const ProductCard({
-    Key? key,
-    required this.product,
-    required this.categoryName,
-    required this.onEdit,
-    required this.onDelete,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: CachedNetworkImage(
-                imageUrl: product.imageUrl,
-                width: 80,
-                height: 80,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: Colors.grey[200],
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.error),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    categoryName,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${product.price} сум',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.green,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.blue),
-                  onPressed: onEdit,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: onDelete,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

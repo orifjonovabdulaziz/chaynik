@@ -20,9 +20,6 @@ class AuthService {
       if (response.statusCode == 200) {
         String token = response.data['token'];
         await SharedPrefsService.saveToken(token); // Сохраняем токен локально
-        // await _saveCategoriesToLocalDB();
-        await CategoryRepository().getCategoriesFromServerAndSave();
-        await ProductRepository().getProductsFromServerAndSave();
         return token;
       }
     } on DioException catch (e) {
@@ -38,6 +35,7 @@ class AuthService {
     try {
       Response response = await ApiService.dio.get('/api/accounts/logout/');
       if (response.statusCode == 200) {
+
         return "Выход выполнен";
       }
       return null;

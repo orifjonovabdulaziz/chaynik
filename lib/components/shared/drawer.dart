@@ -37,7 +37,8 @@ class AppDrawer extends ConsumerWidget {
               context.go('/home');
               Navigator.pop(context); // Закрываем drawer после нажатия
             },
-          ),ListTile(
+          ),
+          ListTile(
             leading: Icon(Icons.list_alt_outlined),
             title: Text("Мои Товары"),
             onTap: () {
@@ -48,6 +49,21 @@ class AppDrawer extends ConsumerWidget {
           ListTile(
             leading: Icon(Icons.category_outlined),
             title: Text("Мои Категории"),
+            onTap: () {
+              context.go("/categories");
+              Navigator.pop(context); // Закрываем drawer после нажатия
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.arrow_downward),
+            title: Text("Приход"),
+            onTap: () {
+              Navigator.pop(context); // Закрываем drawer после нажатия
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.arrow_upward),
+            title: Text("Продажа"),
             onTap: () {
               Navigator.pop(context); // Закрываем drawer после нажатия
             },
