@@ -4,14 +4,15 @@ class Product {
   final double price;
   final String imageUrl;
   final int categoryId;
+  final int quantity;
 
-  Product({
-    required this.id,
-    required this.title,
-    required this.price,
-    required this.imageUrl,
-    required this.categoryId,
-  });
+  Product(
+      {required this.id,
+      required this.title,
+      required this.price,
+      required this.imageUrl,
+      required this.categoryId,
+      required this.quantity});
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
@@ -20,6 +21,7 @@ class Product {
       price: double.parse(json['price']),
       imageUrl: json['image'],
       categoryId: json['category'],
+      quantity: json['quantity'],
     );
   }
 
@@ -29,6 +31,7 @@ class Product {
       "price": price.toString(),
       "image": imageUrl,
       "category": categoryId,
+      "quantity": quantity
     };
   }
 }

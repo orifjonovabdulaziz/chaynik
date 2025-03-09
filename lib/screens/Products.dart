@@ -9,7 +9,6 @@ import '../components/product/show_update_product_dialog.dart';
 import '../components/shared/drawer.dart';
 import '../components/product/AddProductDialog.dart';
 import '../models/category.dart';
-import '../models/product.dart';
 import '../provider/category_provider.dart';
 import '../provider/product_provider.dart';
 

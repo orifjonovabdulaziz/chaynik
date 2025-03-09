@@ -1,19 +1,16 @@
-import 'dart:io';
-
+import 'package:chaynik/provider/client_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../models/product.dart';
-import '../../provider/product_provider.dart';
+import '../../models/client.dart';
 
-
-void showDeleteProductDialog(BuildContext context, WidgetRef ref, Product product) {
+void showDeleteClientDialog(BuildContext context, WidgetRef ref, Client client) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
         title: const Text(
-          'Удаление продукта',
+          'Удаление клиента',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -24,50 +21,24 @@ void showDeleteProductDialog(BuildContext context, WidgetRef ref, Product produc
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Вы действительно хотите удалить этот продукт?',
+              'Вы действительно хотите удалить этого клиента?',
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
-            // Информация о продукте
+            // Информация о клиенте
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Row(
-                children: [
-                  // Миниатюра продукта
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: Image.file(File(product.imageUrl),
-                        height: 50, width: 50, fit: BoxFit.cover),
-                  ),
-                  const SizedBox(width: 12),
-                  // Детали продукта
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          product.title,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          '${product.price} сум',
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              child: Text(
+                client.full_name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -87,13 +58,13 @@ void showDeleteProductDialog(BuildContext context, WidgetRef ref, Product produc
           // Кнопка удаления
           TextButton(
             onPressed: () {
-              ref.read(productProvider.notifier).deleteProduct(product.id);
+              ref.read(clientProvider.notifier).deleteClient(client.id);
               Navigator.of(context).pop();
 
               // Показываем снекбар с подтверждением
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Продукт "${product.title}" удален'),
+                  content: Text('Клиент "${client.full_name}" удален'),
                   backgroundColor: Colors.red,
                   duration: const Duration(seconds: 2),
                   behavior: SnackBarBehavior.floating,

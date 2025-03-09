@@ -1,21 +1,16 @@
-import 'dart:io';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../../models/product.dart';
+import '../../models/client.dart';
 
-class ProductCard extends StatelessWidget {
-  final Product product;
-  final String categoryName;
+class ClientCard extends StatelessWidget {
+  final Client client;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const ProductCard({
+  const ClientCard({
     Key? key,
-    required this.product,
-    required this.categoryName,
+    required this.client,
     required this.onEdit,
     required this.onDelete,
   }) : super(key: key);
@@ -28,18 +23,12 @@ class ProductCard extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.file(File(product.imageUrl),
-                  height: 80, width: 80, fit: BoxFit.cover),
-            ),
-            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    product.title,
+                    client.full_name,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -47,7 +36,7 @@ class ProductCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    categoryName,
+                    client.content,
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 14,
@@ -55,10 +44,10 @@ class ProductCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${product.price} сум',
+                    'Долг: ${client.debt} сум',
                     style: const TextStyle(
                       fontSize: 16,
-                      color: Colors.green,
+                      color: Colors.red,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

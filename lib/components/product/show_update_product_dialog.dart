@@ -161,7 +161,7 @@ void showUpdateProductDialog(
                             )
                           : GestureDetector(
                               onTap: _pickImage,
-                              child: Image.network(product.imageUrl,
+                              child: Image.file(File(product.imageUrl),
                                   height: 200, width: 200, fit: BoxFit.cover)),
                     ],
                   ),
@@ -184,7 +184,7 @@ void showUpdateProductDialog(
                             title: _titleController.text,
                             price: double.parse(_priceController.text),
                             category: int.parse(_selectedCategory!),
-                            image: _image!.path, // Если не меняли, останется null
+                            image: _image?.path, // Если не меняли, останется null
                           );
                       Navigator.of(context).pop();
 

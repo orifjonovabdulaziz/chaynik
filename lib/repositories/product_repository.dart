@@ -1,6 +1,7 @@
 import 'package:chaynik/dio/db/product_db.dart';
 import 'package:chaynik/models/product.dart';
 
+import '../components/util/image_downloader.dart';
 import '../dio/services/product_service.dart';
 
 class ProductRepository {
@@ -15,6 +16,7 @@ class ProductRepository {
     try {
       List<Product> products = await _productService.getProducts();
       await _productDb.insertProducts(products);
+      await downloadAndSaveImages(products);
       print("Продукты обновлены и сохранены в локальную базу данных");
       return products;
     } catch (e) {
@@ -29,6 +31,7 @@ class ProductRepository {
           name, price, imageUrl, categoryId);
       if (newProduct != null) {
         await _productDb.insertProducts([newProduct]);
+        await downloadAndSaveImages([newProduct]);
         print("Новый продукт успешно добавлена локально");
         return true;
       }
@@ -75,7 +78,7 @@ class ProductRepository {
           productId,
           title: title,
           category: category,
-          image: "http://back.chaynik.uz/media/${image?.split("/").last}",
+          image: image,
           price: price,
         );
       }

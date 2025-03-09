@@ -73,6 +73,7 @@ class ProductService {
     int? category,
     String? image,
     double? price,
+
   }) async {
     try {
       // Создаём `FormData`

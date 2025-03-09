@@ -55,6 +55,14 @@ class AppDrawer extends ConsumerWidget {
             },
           ),
           ListTile(
+            leading: Icon(Icons.people_alt_outlined),
+            title: Text("Клиенты"),
+            onTap: () {
+              context.go("/clients");
+              Navigator.pop(context); // Закрываем drawer после нажатия
+            },
+          ),
+          ListTile(
             leading: Icon(Icons.arrow_downward),
             title: Text("Приход"),
             onTap: () {
@@ -65,6 +73,7 @@ class AppDrawer extends ConsumerWidget {
             leading: Icon(Icons.arrow_upward),
             title: Text("Продажа"),
             onTap: () {
+              context.go("/sold");
               Navigator.pop(context); // Закрываем drawer после нажатия
             },
           ),

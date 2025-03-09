@@ -32,6 +32,7 @@ class ProductDatabase {
         title TEXT NOT NULL,
         price REAL NOT NULL,
         imageUrl TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
         categoryId INTEGER NOT NULL
       )
     ''');
@@ -50,6 +51,7 @@ class ProductDatabase {
             'title': product.title,
             'price': product.price,
             'imageUrl': product.imageUrl,
+            'quantity': product.quantity,
             'categoryId': product.categoryId,
           },
           conflictAlgorithm: ConflictAlgorithm.replace,
@@ -68,6 +70,7 @@ class ProductDatabase {
         title: maps[i]['title'],
         price: maps[i]['price'],
         imageUrl: maps[i]['imageUrl'],
+        quantity: maps[i]['quantity'],
         categoryId: maps[i]['categoryId'],
       );
     });
@@ -92,7 +95,8 @@ class ProductDatabase {
     String? title,
     int? category,
     String? image,
-    double? price
+    double? price,
+
   }) async {
     final db = await database;
 
