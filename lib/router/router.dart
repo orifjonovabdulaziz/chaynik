@@ -1,3 +1,4 @@
+import 'package:chaynik/components/sell/AddProductSellScreen.dart';
 import 'package:chaynik/screens/Categories.dart';
 import 'package:chaynik/screens/ClientsScreen.dart';
 import 'package:chaynik/screens/SoldScreen.dart';
@@ -49,6 +50,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/sold',
         name: 'sold',
         builder: (context, state) => SoldScreen(),
+      ),
+      GoRoute(
+        path: '/addproducttosell',
+        name: 'addproducttosell',
+        builder: (context, state) => AddProductSellScreen(),
       ),
     ],
     // Добавляем редирект для проверки авторизации

@@ -19,6 +19,25 @@ class ClientService {
     return [];
   }
 
+
+  /// 🔹 **Получить клиента по ID**
+  Future<Client?> getClientById(int clientId) async {
+    try {
+      Response response = await ApiService.dio.get('/api/client/$clientId/');
+
+      if (response.statusCode == 200) {
+        print("✅ Клиент успешно получен");
+        return Client.fromJson(response.data);
+      }
+
+      print("❌ Ошибка получения клиента: Код ${response.statusCode}");
+      return null;
+    } catch (e) {
+      print("❌ Ошибка получения клиента: $e");
+      rethrow; // Пробрасываем ошибку дальше для обработки в repository
+    }
+  }
+
   /// 🔹 **Добавить новый клиент**
   Future<Client?> addClient(String fullName, String content, double debt) async {
     try {

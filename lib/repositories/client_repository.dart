@@ -22,6 +22,28 @@ class ClientRepository {
     }
   }
 
+  /// Обновляет данные клиента в локальной БД, получая свежие данные с сервера
+  Future<bool> updateClientFromServer(int clientId) async {
+    try {
+      // 1️⃣ Получаем свежие данные с сервера
+      final Client? serverClient = await _clientService.getClientById(clientId);
+
+      if (serverClient != null) {
+        // 2️⃣ Обновляем данные только этого клиента в локальной БД
+        await _clientDb.insertClients([serverClient]);
+        print("✅ Данные клиента успешно обновлены из сервера");
+        return true;
+      }
+
+      print("❌ Не удалось получить данные клиента с сервера");
+      return false;
+
+    } catch (e) {
+      print("❌ Ошибка при обновлении данных клиента из сервера: $e");
+      return false;
+    }
+  }
+
   Future<bool> addClient(String fullName, String content, double debt) async {
     try {
       Client? newClient = await _clientService.addClient(fullName, content, debt);

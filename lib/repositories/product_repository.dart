@@ -16,7 +16,7 @@ class ProductRepository {
     try {
       List<Product> products = await _productService.getProducts();
       await _productDb.insertProducts(products);
-      await downloadAndSaveImages(products);
+      // await downloadAndSaveImages(products);
       print("Продукты обновлены и сохранены в локальную базу данных");
       return products;
     } catch (e) {
@@ -31,7 +31,7 @@ class ProductRepository {
           name, price, imageUrl, categoryId);
       if (newProduct != null) {
         await _productDb.insertProducts([newProduct]);
-        await downloadAndSaveImages([newProduct]);
+        // await downloadAndSaveImages([newProduct]);
         print("Новый продукт успешно добавлена локально");
         return true;
       }
@@ -64,7 +64,7 @@ class ProductRepository {
   }) async {
     try {
       // 1️⃣ Обновляем продукт в API
-      final success = await _productService.updateProduct(
+      final updatedProduct = await _productService.updateProduct(
         productId,
         title: title,
         category: category,
@@ -72,21 +72,55 @@ class ProductRepository {
         price: price,
       );
 
-      if (success) {
+      if (updatedProduct != null) {
         // 2️⃣ Если API обновление успешно, обновляем продукт в локальной БД
         await _productDb.updateProduct(
           productId,
-          title: title,
-          category: category,
-          image: image,
-          price: price,
+          title: updatedProduct.title,
+          category: updatedProduct.categoryId,
+          image: updatedProduct.imageUrl,
+          price: updatedProduct.price,
         );
       }
 
-      return success;
+      return true;
     } catch (e) {
       print("❌ Ошибка в репозитории при обновлении продукта: $e");
       throw e; // Пробрасываем ошибку дальше для обработки в UI
+    }
+  }
+
+  Future<bool> decreaseProductQuantity(int productId, int quantity) async {
+    try {
+      // Получаем текущий продукт из локальной БД
+      final Product? currentProduct = await _productDb.getProductById(productId);
+
+      if (currentProduct != null) {
+        // Вычисляем новое количество
+        final int newQuantity = currentProduct.quantity - quantity;
+
+        // Проверяем, не станет ли количество отрицательным
+        if (newQuantity < 0) {
+          print("❌ Ошибка: Недостаточно товара на складе");
+          return false;
+        }
+
+        // Обновляем количество в локальной БД
+        await _productDb.updateProduct(
+          productId,
+          quantity: newQuantity,
+        );
+
+        print("✅ Количество товара успешно уменьшено на $quantity. Новое количество: $newQuantity");
+        return true;
+      }
+
+      print("❌ Товар с ID $productId не найден в локальной базе данных");
+      return false;
+
+    } catch (e) {
+      print("❌ Ошибка при уменьшении количества товара: $e");
+      return false;
     }
   }
 

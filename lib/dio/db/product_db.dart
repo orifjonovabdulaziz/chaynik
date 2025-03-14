@@ -96,6 +96,7 @@ class ProductDatabase {
     int? category,
     String? image,
     double? price,
+    int? quantity,
 
   }) async {
     final db = await database;
@@ -107,6 +108,7 @@ class ProductDatabase {
     if (category != null) updateData["categoryId"] = category;
     if (image != null) updateData["imageUrl"] = image;
     if (price != null) updateData["price"] = price;
+    if (quantity != null) updateData['quantity'] = quantity;
 
 
     await db.update(
@@ -115,6 +117,20 @@ class ProductDatabase {
       where: 'id = ?',
       whereArgs: [productId],
     );
+  }
+
+  Future<Product?> getProductById(int productId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'products',
+      where: 'id = ?',
+      whereArgs: [productId],
+    );
+
+    if (maps.isNotEmpty) {
+      return Product.fromJson(maps.first);
+    }
+    return null;
   }
 
 }

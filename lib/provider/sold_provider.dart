@@ -1,55 +1,104 @@
+// providers/sold_provider.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/selected_product.dart';
 import '../models/client.dart';
-import '../models/sold.dart';
-import '../repositories/sold_repository.dart';
 
-final soldProvider = Provider((ref) => SoldRepository());
-
-// Если нужно хранить состояние текущей продажи
-// В sold_provider.dart добавим:
-
-final currentSaleProvider = StateNotifierProvider<CurrentSaleNotifier, CurrentSale>(
-      (ref) => CurrentSaleNotifier(),
-);
-
-class CurrentSale {
+class SaleState {
   final Client? client;
-  final List<SoldItem> items;
-  final double total;
+  final List<SelectedProduct> products;
+  final double totalAmount;
+  final double paidAmount;
 
-  CurrentSale({
+  SaleState({
     this.client,
-    this.items = const [],
-    this.total = 0.0,
+    this.products = const [],
+    this.totalAmount = 0,
+    this.paidAmount = 0,
   });
 
-  CurrentSale copyWith({
+  SaleState copyWith({
     Client? client,
-    List<SoldItem>? items,
-    double? total,
+    List<SelectedProduct>? products,
+    double? totalAmount,
+    double? paidAmount,
   }) {
-    return CurrentSale(
+    return SaleState(
       client: client ?? this.client,
-      items: items ?? this.items,
-      total: total ?? this.total,
+      products: products ?? this.products,
+      totalAmount: totalAmount ?? this.totalAmount,
+      paidAmount: paidAmount ?? this.paidAmount,
     );
   }
 }
 
-class CurrentSaleNotifier extends StateNotifier<CurrentSale> {
-  CurrentSaleNotifier() : super(CurrentSale());
+class SoldNotifier extends StateNotifier<SaleState> {
+  SoldNotifier() : super(SaleState());
 
-  void updateClient(Client client) {
+  void setClient(Client client) {
     state = state.copyWith(client: client);
   }
 
-  void addItem(SoldItem item) {
-    final items = [...state.items, item];
-    final total = items.fold(0.0, (sum, item) => sum + (item.price * item.quantity));
-    state = state.copyWith(items: items, total: total);
+  void removeClient() {
+    state = state.copyWith(client: null);
   }
 
-  void clearSale() {
-    state = CurrentSale();
+  void addOrUpdateProduct(SelectedProduct product) {
+    final currentProducts = List<SelectedProduct>.from(state.products);
+    final index = currentProducts.indexWhere((p) => p.id == product.id);
+
+    if (index >= 0) {
+      currentProducts[index] = product;
+    } else {
+      currentProducts.add(product);
+    }
+
+    final newTotal = currentProducts.fold(
+      0.0,
+          (sum, product) => sum + product.total,
+    );
+
+    state = state.copyWith(
+      products: currentProducts,
+      totalAmount: newTotal,
+    );
+  }
+
+  void removeProduct(int productId) {
+    final currentProducts = state.products.where((p) => p.id != productId).toList();
+    final newTotal = currentProducts.fold(
+      0.0,
+          (sum, product) => sum + product.total,
+    );
+    const newPaidAmount = 0.0;
+
+
+    state = state.copyWith(
+      products: currentProducts,
+      totalAmount: newTotal,
+      paidAmount: newPaidAmount
+    );
+  }
+
+  int getQuantity(int productId) {
+    final product = state.products.firstWhere(
+          (p) => p.id == productId,
+      orElse: () => SelectedProduct(
+        id: productId,
+        title: '',
+        price: 0,
+        quantity: 0,
+        total: 0,
+        imageUrl: '',
+      ),
+    );
+    return product.quantity;
+  }
+
+  void clear() {
+    state = SaleState();
   }
 }
+
+final soldProvider = StateNotifierProvider<SoldNotifier, SaleState>((ref) {
+  return SoldNotifier();
+});

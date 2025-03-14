@@ -74,7 +74,7 @@ void showClientBottomSheet(BuildContext context, WidgetRef ref) {
                               ),
                             ),
                             onTap: () {
-                              ref.read(currentSaleProvider.notifier).updateClient(client);
+                              ref.read(soldProvider.notifier).setClient(client);
                               Navigator.pop(context);
                             },
                           ),

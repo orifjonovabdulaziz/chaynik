@@ -16,12 +16,12 @@ class Product {
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'],
-      title: json['title'],
-      price: double.parse(json['price']),
-      imageUrl: json['image'],
-      categoryId: json['category'],
-      quantity: json['quantity'],
+      id: json['id'] ?? 0, // или другое значение по умолчанию
+      title: json['title'] ?? '',
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
+      imageUrl: json['image'] ?? '',
+      categoryId: json['category'] ?? 0,
+      quantity: json['quantity'] ?? 0,
     );
   }
 

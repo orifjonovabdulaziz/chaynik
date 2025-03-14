@@ -67,7 +67,7 @@ class ProductService {
   }
 
   /// 🔹 **Изменение продукта (PATCH)**
-  Future<bool> updateProduct(
+  Future<Product?> updateProduct(
     int productId, {
     String? title,
     int? category,
@@ -94,7 +94,7 @@ class ProductService {
 
       if (formData.fields.isEmpty && formData.files.isEmpty) {
         print("❌ Ошибка: Нет данных для обновления");
-        return false;
+        return null;
       }
 
       Response response = await ApiService.dio.patch(
@@ -107,11 +107,11 @@ class ProductService {
 
       if (response.statusCode == 200) {
         print("✅ Продукт успешно обновлён");
-        return true;
+        return Product.fromJson(response.data);
       }
 
       print("❌ Ошибка обновления продукта: Код ${response.statusCode}");
-      return false;
+      return null;
     } catch (e) {
       print("❌ Ошибка обновления продукта: $e");
       rethrow;

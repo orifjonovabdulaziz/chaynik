@@ -30,8 +30,21 @@ class ProductCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.file(File(product.imageUrl),
-                  height: 80, width: 80, fit: BoxFit.cover),
+              child: CachedNetworkImage(
+                imageUrl: product.imageUrl,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: Colors.grey[200],
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.error),
+                ),
+              ),
+
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -51,6 +64,13 @@ class ProductCard extends StatelessWidget {
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    product.quantity.toString(),
+                    style: TextStyle(
+                      color: Colors.blue[600],
+                      fontSize: 15,
                     ),
                   ),
                   const SizedBox(height: 4),

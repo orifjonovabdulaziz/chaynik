@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -161,8 +162,18 @@ void showUpdateProductDialog(
                             )
                           : GestureDetector(
                               onTap: _pickImage,
-                              child: Image.file(File(product.imageUrl),
-                                  height: 200, width: 200, fit: BoxFit.cover)),
+                              child: CachedNetworkImage(
+                                imageUrl: product.imageUrl,
+                                width: 200,
+                                height: 200,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  color: Colors.grey[200],
+                                  child: const Center(child: CircularProgressIndicator()),
+
+
+                              ),
+                      ),),
                     ],
                   ),
                 ),

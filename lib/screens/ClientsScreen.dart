@@ -51,21 +51,32 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(8),
-            itemCount: clients.length,
-            itemBuilder: (context, index) {
-              final client = clients[index];
-              return ClientCard(
-                client: client,
-                onEdit: () {
-                  showUpdateClientDialog(context, ref, client);
-                },
-                onDelete: () {
-                  showDeleteClientDialog(context, ref, client);
-                },
-              );
-            },
+          return Column(
+            children: [
+              Expanded(
+                child:
+                  ListView.builder(
+                    padding: const EdgeInsets.all(8),
+                    itemCount: clients.length,
+                    itemBuilder: (context, index) {
+                      final client = clients[index];
+                      return ClientCard(
+                        client: client,
+                        onEdit: () {
+                          showUpdateClientDialog(context, ref, client);
+                        },
+                        onDelete: () {
+                          showDeleteClientDialog(context, ref, client);
+                        },
+                      );
+                    },
+
+                  ),
+
+              ),
+              const SizedBox(height: 100)
+
+            ],
           );
         },
       ),
