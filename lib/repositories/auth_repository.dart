@@ -1,9 +1,11 @@
 import 'package:chaynik/repositories/category_repository.dart';
 import 'package:chaynik/repositories/product_repository.dart';
+import 'package:chaynik/repositories/sold_repository.dart';
 
 import '../dio/db/category_db.dart';
 import '../dio/db/client_db.dart';
 import '../dio/db/product_db.dart';
+import '../dio/db/sold_db.dart';
 import '../dio/services/auth_service.dart';
 import '../dio/services/category_service.dart';
 import '../dio/services/product_service.dart';
@@ -20,6 +22,9 @@ class AuthRepository {
   final ClientRepository _clientRepository = ClientRepository();
   final ClientDatabase _clientDb = ClientDatabase.instance;
 
+  final SoldRepository _soldRepository = SoldRepository();
+  final SoldDatabase _soldDb = SoldDatabase.instance;
+
   final AuthService _authService = AuthService();
 
   Future<String?> login(String email, String password) async {
@@ -29,6 +34,7 @@ class AuthRepository {
         await _productRepository.getProductsFromServerAndSave();
         await _categoryRepository.getCategoriesFromServerAndSave();
         await _clientRepository.getClientsFromServerAndSave();
+        await _soldRepository.syncWithServer();
         return token;
       }
     }catch(e){
@@ -48,6 +54,7 @@ class AuthRepository {
       await _productDb.deleteAllProducts();
       await _categoryDatabase.deleteAllCategories();
       await _clientDb.deleteAllClients();
+      await _soldDb.deleteAllSolds();
       await SharedPrefsService.removeToken();
     }
   }

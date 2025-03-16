@@ -1,6 +1,10 @@
+import 'package:chaynik/components/income/AddProductIncomeScreen.dart';
 import 'package:chaynik/components/sell/AddProductSellScreen.dart';
 import 'package:chaynik/screens/Categories.dart';
 import 'package:chaynik/screens/ClientsScreen.dart';
+import 'package:chaynik/screens/IncomeScreen.dart';
+import 'package:chaynik/screens/MarketScreen.dart';
+import 'package:chaynik/screens/SoldHistoryScreen.dart';
 import 'package:chaynik/screens/SoldScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +14,7 @@ import 'package:chaynik/screens/HomeScreen.dart';
 import 'package:chaynik/screens/SplashScreen.dart';
 
 import '../screens/Products.dart';
+import '../screens/UzumScreen.dart';
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -52,9 +57,41 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => SoldScreen(),
       ),
       GoRoute(
+        path: '/income',
+        name: 'income',
+        builder: (context, state) => IncomeScreen(),
+      ),
+      GoRoute(
+        path: '/soldhistory',
+        name: 'soldhistory',
+        builder: (context, state) => SoldHistoryScreen(),
+      ),
+      GoRoute(
         path: '/addproducttosell',
         name: 'addproducttosell',
         builder: (context, state) => AddProductSellScreen(),
+      ),
+      GoRoute(
+        path: '/addproducttoincome',
+        name: 'addproducttoincome',
+        builder: (context, state) => AddProductIncomeScreen(),
+      ),
+      GoRoute(
+        path: '/market',
+        name: 'market',
+        builder: (context, state) => MarketScreen(),
+      ),
+      GoRoute(
+        path: '/uzum/:id',
+        name: 'uzum',
+        builder: (context, state) {
+          final marketId = int.parse(state.pathParameters['id'] ?? '0');
+          final marketName = state.extra as String?;
+          return UzumScreen(
+            marketId: marketId,
+            marketName: marketName ?? 'Uzum статистика',
+          );
+        },
       ),
     ],
     // Добавляем редирект для проверки авторизации

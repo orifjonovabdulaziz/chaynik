@@ -22,7 +22,7 @@ class SoldScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Новая продажа'),
+        title: const Text('Новая Продажа'),
         leading: Builder(
           builder: (context) => IconButton(
             icon: Icon(Icons.menu),
@@ -174,7 +174,7 @@ class SoldScreen extends ConsumerWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: ElevatedButton(
-                onPressed: client != null
+                onPressed: client != null && products.isNotEmpty
                     ? () {
                   showPayBottomSheet(context);
                       }

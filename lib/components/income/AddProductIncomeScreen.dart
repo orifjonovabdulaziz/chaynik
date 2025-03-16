@@ -5,19 +5,19 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/category.dart';
 import '../../provider/category_provider.dart';
+import '../../provider/income_provider.dart';
 import '../../provider/product_provider.dart';
-import '../../provider/sold_provider.dart';
+import 'ProductToIncomeCard.dart';
 
-import 'ProductToSellCard.dart';
 
-class AddProductSellScreen extends ConsumerStatefulWidget {
-  const AddProductSellScreen({Key? key}) : super(key: key);
+class AddProductIncomeScreen extends ConsumerStatefulWidget {
+  const AddProductIncomeScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<AddProductSellScreen> createState() => _ProductsScreenState();
+  ConsumerState<AddProductIncomeScreen> createState() => _ProductsScreenState();
 }
 
-class _ProductsScreenState extends ConsumerState<AddProductSellScreen> {
+class _ProductsScreenState extends ConsumerState<AddProductIncomeScreen> {
   int? selectedCategoryId;
 
   @override
@@ -25,9 +25,9 @@ class _ProductsScreenState extends ConsumerState<AddProductSellScreen> {
     final productsAsync = ref.watch(productProvider);
     final categoriesAsync = ref.watch(categoryProvider);
 
-    final saleState = ref.watch(soldProvider);
-    final products = saleState.products;
-    final totalAmount = saleState.totalAmount;
+    final incomeState = ref.watch(incomeProvider);
+    final products = incomeState.products;
+    final totalAmount = incomeState.totalAmount;
 
     return Scaffold(
       appBar: AppBar(
@@ -96,7 +96,7 @@ class _ProductsScreenState extends ConsumerState<AddProductSellScreen> {
                   itemCount: filteredProducts.length,
                   itemBuilder: (context, index) {
                     final product = filteredProducts[index];
-                    return ProductToSellCard(
+                    return ProductToIncomeCard(
                       product: product,
                       categoryName: categoriesAsync.when(
                         loading: () => 'Загрузка...',
@@ -138,7 +138,7 @@ class _ProductsScreenState extends ConsumerState<AddProductSellScreen> {
           child: ElevatedButton(
             onPressed: ()  {
               // Ваше действие
-              context.go('/sold');
+              context.go('/income');
             },
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -161,7 +161,7 @@ class _ProductsScreenState extends ConsumerState<AddProductSellScreen> {
                 if (products.isNotEmpty) ...[
                   const SizedBox(width: 8),
                   Text(
-                    '${totalAmount.toStringAsFixed(2)} UZS',
+                    '${totalAmount.toStringAsFixed(2)} \$',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

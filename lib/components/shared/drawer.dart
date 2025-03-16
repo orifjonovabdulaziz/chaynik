@@ -66,6 +66,7 @@ class AppDrawer extends ConsumerWidget {
             leading: Icon(Icons.arrow_downward),
             title: Text("Приход"),
             onTap: () {
+              context.go("/income");
               Navigator.pop(context); // Закрываем drawer после нажатия
             },
           ),
@@ -74,6 +75,22 @@ class AppDrawer extends ConsumerWidget {
             title: Text("Продажа"),
             onTap: () {
               context.go("/sold");
+              Navigator.pop(context); // Закрываем drawer после нажатия
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.history),
+            title: Text("История Продаж"),
+            onTap: () {
+              context.go("/soldhistory");
+              Navigator.pop(context); // Закрываем drawer после нажатия
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.store),
+            title: Text("Uzum"),
+            onTap: () {
+              context.go("/market");
               Navigator.pop(context); // Закрываем drawer после нажатия
             },
           ),

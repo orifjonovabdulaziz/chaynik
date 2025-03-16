@@ -1,45 +1,29 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/selected_product.dart';
-import '../models/client.dart';
 
-class SaleState {
-  final Client? client;
+class IncomeState {
   final List<SelectedProduct> products;
   final double totalAmount;
-  final double paidAmount;
 
-  SaleState({
-    this.client,
+  IncomeState({
     this.products = const [],
     this.totalAmount = 0,
-    this.paidAmount = 0,
   });
 
-  SaleState copyWith({
-    Client? client,
+  IncomeState copyWith({
     List<SelectedProduct>? products,
     double? totalAmount,
-    double? paidAmount,
   }) {
-    return SaleState(
-      client: client ?? this.client,
+    return IncomeState(
       products: products ?? this.products,
       totalAmount: totalAmount ?? this.totalAmount,
-      paidAmount: paidAmount ?? this.paidAmount,
     );
   }
 }
 
-class SoldNotifier extends StateNotifier<SaleState> {
-  SoldNotifier() : super(SaleState());
+class IncomeNotifier extends StateNotifier<IncomeState> {
+  IncomeNotifier() : super(IncomeState());
 
-  void setClient(Client client) {
-    state = state.copyWith(client: client);
-  }
-
-  void removeClient() {
-    state = state.copyWith(client: null);
-  }
 
   void addOrUpdateProduct(SelectedProduct product) {
     final currentProducts = List<SelectedProduct>.from(state.products);
@@ -68,13 +52,11 @@ class SoldNotifier extends StateNotifier<SaleState> {
       0.0,
           (sum, product) => sum + product.total,
     );
-    const newPaidAmount = 0.0;
 
 
     state = state.copyWith(
-      products: currentProducts,
-      totalAmount: newTotal,
-      paidAmount: newPaidAmount
+        products: currentProducts,
+        totalAmount: newTotal,
     );
   }
 
@@ -94,10 +76,10 @@ class SoldNotifier extends StateNotifier<SaleState> {
   }
 
   void clear() {
-    state = SaleState();
+    state = IncomeState();
   }
 }
 
-final soldProvider = StateNotifierProvider<SoldNotifier, SaleState>((ref) {
-  return SoldNotifier();
+final incomeProvider = StateNotifierProvider<IncomeNotifier, IncomeState>((ref) {
+  return IncomeNotifier();
 });

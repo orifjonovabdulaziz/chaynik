@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/product.dart';
 import '../../models/selected_product.dart';
-import '../../provider/sold_provider.dart';
+import '../../provider/income_provider.dart';
 
-void showProductQuantityBottomSheet(BuildContext context, Product product) {
+void showProductQuantityBottomSheetIncome(BuildContext context, Product product) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -13,7 +13,7 @@ void showProductQuantityBottomSheet(BuildContext context, Product product) {
     builder: (BuildContext context) {
       return Consumer(
         builder: (context, ref, child) {
-          final existingProduct = ref.watch(soldProvider).products
+          final existingProduct = ref.watch(incomeProvider).products
               .firstWhere((p) => p.id == product.id,
               orElse: () => SelectedProduct(
                 id: product.id,
@@ -61,11 +61,12 @@ class _BottomSheetContentState extends State<_BottomSheetContent> {
   @override
   void initState() {
     super.initState();
-    _priceController = TextEditingController(
-      text: widget.existingProduct.quantity > 0
-          ? widget.existingProduct.price.toString()
-          : widget.product.price.toString(),
-    );
+    // _priceController = TextEditingController(
+    //   text: widget.existingProduct.quantity > 0
+    //       ? widget.existingProduct.price.toString()
+    //       : widget.product.price.toString(),
+    // );
+    _priceController = TextEditingController(text: "0");
     _quantityController = TextEditingController(
       text: widget.existingProduct.quantity > 0
           ? widget.existingProduct.quantity.toString()
@@ -83,11 +84,7 @@ class _BottomSheetContentState extends State<_BottomSheetContent> {
 
   void validateQuantity(String value) {
     final quantity = int.tryParse(value) ?? 0;
-    if (quantity > widget.product.quantity) {
-      setState(() {
-        _errorText = 'На складе только ${widget.product.quantity} шт';
-      });
-    } else if (quantity <= 0) {
+    if (quantity <= 0) {
       setState(() {
         _errorText = 'Количество должно быть больше 0';
       });
@@ -270,12 +267,12 @@ class _BottomSheetContentState extends State<_BottomSheetContent> {
                       child: InkWell(
                         onTap: () {
                           final currentValue = int.tryParse(_quantityController.text) ?? 0;
-                          if (currentValue < widget.product.quantity) {
+
                             setState(() {
                               _quantityController.text = (currentValue + 1).toString();
                               updateTotal();
                             });
-                          }
+
                         },
                         borderRadius: BorderRadius.circular(8),
                         child: Container(
@@ -303,7 +300,7 @@ class _BottomSheetContentState extends State<_BottomSheetContent> {
                       border: Border.all(color: Colors.grey[300]!),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text('Стандартная',
+                    child: const Text('Цена',
                         style: TextStyle(fontSize: 20)),
                   ),
                   Expanded(
@@ -334,9 +331,9 @@ class _BottomSheetContentState extends State<_BottomSheetContent> {
                     ),
                   ),
                   const Text(
-                    'UZS',
+                    '\$',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 20,
                       fontWeight: FontWeight.w500,
                       color: Colors.blue,
                     ),
@@ -367,9 +364,9 @@ class _BottomSheetContentState extends State<_BottomSheetContent> {
                       ),
                       const SizedBox(width: 4),
                       const Text(
-                        'UZS',
+                        '\$',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Colors.blue,
                         ),
@@ -387,7 +384,7 @@ class _BottomSheetContentState extends State<_BottomSheetContent> {
                     child: TextButton(
                       onPressed: () {
                         if (widget.existingProduct.quantity > 0) {
-                          widget.ref.read(soldProvider.notifier)
+                          widget.ref.read(incomeProvider.notifier)
                               .removeProduct(widget.product.id);
                         }
                         Navigator.pop(context);
@@ -417,8 +414,8 @@ class _BottomSheetContentState extends State<_BottomSheetContent> {
                         final quantity = int.tryParse(_quantityController.text) ?? 0;
                         final price = double.tryParse(_priceController.text) ?? 0.0;
 
-                        if (quantity > 0 && quantity <= widget.product.quantity && price > 0) {
-                          widget.ref.read(soldProvider.notifier).addOrUpdateProduct(
+                        if (quantity > 0 &&  price > 0) {
+                          widget.ref.read(incomeProvider.notifier).addOrUpdateProduct(
                             SelectedProduct(
                               id: widget.product.id,
                               title: widget.product.title,

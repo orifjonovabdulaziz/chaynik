@@ -1,20 +1,20 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chaynik/components/sell/showProductQuantityBottomSheetSell.dart';
+import 'package:chaynik/components/income/showProductQuantityBottomSheetIncome.dart';
+import 'package:chaynik/provider/income_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/product.dart';
 import '../../models/selected_product.dart';
-import '../../provider/sold_provider.dart';
 
-class ProductToSellCard extends ConsumerWidget {
+class ProductToIncomeCard extends ConsumerWidget {
   final Product product;
   final String categoryName;
 
-  const ProductToSellCard({
+  const ProductToIncomeCard({
     Key? key,
     required this.product,
     required this.categoryName,
@@ -22,7 +22,7 @@ class ProductToSellCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedQuantity = ref.watch(soldProvider).products
+    final selectedQuantity = ref.watch(incomeProvider).products
         .firstWhere(
           (p) => p.id == product.id,
       orElse: () => SelectedProduct(
@@ -57,7 +57,7 @@ class ProductToSellCard extends ConsumerWidget {
                   child: const Icon(Icons.error),
                 ),
               ),
-      ),
+            ),
 
             const SizedBox(width: 12),
             Expanded(
@@ -75,20 +75,14 @@ class ProductToSellCard extends ConsumerWidget {
                     categoryName,
                     style: TextStyle(color: Colors.grey[600]),
                   ),
-                  Text(
-                    '${product.price} UZS',
-                    style: const TextStyle(
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+
                 ],
               ),
             ),
             Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () => showProductQuantityBottomSheetSell(context, product),
+                onTap: () => showProductQuantityBottomSheetIncome(context, product),
                 borderRadius: BorderRadius.circular(8),
                 child: selectedQuantity > 0
                     ? Container(
