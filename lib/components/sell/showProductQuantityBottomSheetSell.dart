@@ -64,8 +64,8 @@ class _BottomSheetContentState extends State<_BottomSheetContent> {
     super.initState();
     _priceController = TextEditingController(
       text: widget.existingProduct.quantity > 0
-          ? NumberFormat('#,##0', 'en_EN').format(widget.existingProduct.price).toString()
-          : NumberFormat('#,##0', 'en_EN').format(widget.product.price).toString(),
+          ? widget.existingProduct.price.toString()
+          : widget.product.price.toString(),
     );
     _quantityController = TextEditingController(
       text: widget.existingProduct.quantity > 0
