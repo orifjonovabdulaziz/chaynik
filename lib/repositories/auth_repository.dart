@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../dio/services/auth_service.dart';
 
+import '../dio/services/shared_prefs_service.dart';
 import 'load_data_repository.dart';
 
 class AuthRepository {
@@ -36,7 +37,9 @@ class AuthRepository {
       rethrow;
     }
     finally{
+      await SharedPrefsService.removeToken();
       await loadDataRepository.clearAllData();
+
     }
   }
 

@@ -33,6 +33,7 @@ class LoadDataRepository {
         _categoryRepository = CategoryRepository();
 
   Future<Map<String, String>> loadAllData() async {
+    clearAllData();
     final results = <String, String>{};
     try {
       // Загружаем данные последовательно для предотвращения конфликтов
@@ -56,8 +57,8 @@ class LoadDataRepository {
   Future<Map<String, String>> clearAllData() async {
     final results = <String, String>{};
     try {
-      await SharedPrefsService.removeToken();
-      results['token'] = 'Токен успешно удален';
+      // await SharedPrefsService.removeToken();
+      // results['token'] = 'Токен успешно удален';
 
       // Очищаем данные параллельно
       await Future.wait([
