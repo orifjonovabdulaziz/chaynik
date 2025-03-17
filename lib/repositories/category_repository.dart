@@ -56,6 +56,18 @@ class CategoryRepository {
      }
   }
 
+  Future<bool> deleteAllCategories() async {
+    try{
+        await _categoryDatabase.deleteAllCategories();
+        return true;
+    }
+
+       catch (e){
+      print("Ошибка удаления категории: $e");
+      throw e;
+    }
+  }
+
   Future<bool> updateCategory(int categoryId, String title) async {
     try{
       final success = await _categoryService.updateCategory(categoryId, title);

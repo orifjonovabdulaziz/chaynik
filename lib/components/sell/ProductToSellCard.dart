@@ -5,6 +5,7 @@ import 'package:chaynik/components/sell/showProductQuantityBottomSheetSell.dart'
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../models/product.dart';
 import '../../models/selected_product.dart';
@@ -76,7 +77,7 @@ class ProductToSellCard extends ConsumerWidget {
                     style: TextStyle(color: Colors.grey[600]),
                   ),
                   Text(
-                    '${product.price} UZS',
+                    '${NumberFormat('#,##0', 'en_EN').format(product.price)} UZS',
                     style: const TextStyle(
                       color: Colors.blue,
                       fontWeight: FontWeight.bold,

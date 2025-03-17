@@ -2,6 +2,7 @@ import 'package:chaynik/models/client.dart';
 import 'package:chaynik/provider/client_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void showAddClientDialog(BuildContext context, WidgetRef ref) {
@@ -9,46 +10,100 @@ void showAddClientDialog(BuildContext context, WidgetRef ref) {
   String _fullName = '';
   String _content = '';
   double _debt = 0.0;
+  final TextEditingController _debtController = TextEditingController(text: '0');
 
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text("Добавить нового клиента"),
+        title: const Text(
+          "Добавить нового клиента",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         content: Form(
           key: _formKey,
           child: SingleChildScrollView(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 TextFormField(
-                  decoration: InputDecoration(labelText: "ФИО клиента"),
+                  decoration: InputDecoration(
+                    labelText: "ФИО клиента",
+                    prefixIcon: const Icon(Icons.person),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  textCapitalization: TextCapitalization.words,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return "Пожалуйста, введите ФИО";
                     }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    _fullName = value ?? '';
-                  },
-                ),
-                TextFormField(
-                  decoration: InputDecoration(labelText: "Контент"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Пожалуйста, введите контент";
+                    if (value.length < 2) {
+                      return "ФИО должно содержать минимум 2 символа";
                     }
                     return null;
                   },
                   onSaved: (value) {
-                    _content = value ?? '';
+                    _fullName = value?.trim() ?? '';
                   },
                 ),
+                const SizedBox(height: 16),
                 TextFormField(
-                  decoration: InputDecoration(labelText: "Долг"),
+                  decoration: InputDecoration(
+                    labelText: "Дополнительная информация",
+                    prefixIcon: const Icon(Icons.note),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  maxLines: 3,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return "Пожалуйста, введите долг";
+                      return "Пожалуйста, введите информацию";
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    _content = value?.trim() ?? '';
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _debtController,
+                  decoration: InputDecoration(
+                    labelText: "Долг",
+                    prefixIcon: const Icon(Icons.account_balance_wallet),
+                    suffixText: "сум",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  keyboardType: TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[-0-9.]')),
+                  ],
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Пожалуйста, введите сумму";
                     }
                     if (double.tryParse(value) == null) {
                       return "Введите корректное число";
@@ -58,7 +113,6 @@ void showAddClientDialog(BuildContext context, WidgetRef ref) {
                   onSaved: (value) {
                     _debt = double.tryParse(value ?? '0') ?? 0.0;
                   },
-                  keyboardType: TextInputType.number,
                 ),
               ],
             ),
@@ -67,23 +121,71 @@ void showAddClientDialog(BuildContext context, WidgetRef ref) {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text("Отмена"),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: const Text("Отмена"),
           ),
           ElevatedButton(
             onPressed: () async {
               if (_formKey.currentState!.validate()) {
                 _formKey.currentState!.save();
-                await ref.read(clientProvider.notifier).addClient(
+
+                // Показываем индикатор загрузки
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  },
+                );
+
+                try {
+                  await ref.read(clientProvider.notifier).addClient(
                     _fullName,
                     _content,
-                    _debt);
-                Navigator.of(context).pop();
-                print("ФИО: $_fullName, Контент: $_content, Долг: $_debt");
+                    _debt,
+                  );
+
+                  // Закрываем индикатор загрузки и диалог
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+
+                  // Показываем уведомление об успехе
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Клиент $_fullName успешно добавлен'),
+                      backgroundColor: Colors.green,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                } catch (e) {
+                  // Закрываем индикатор загрузки
+                  Navigator.of(context).pop();
+
+                  // Показываем ошибку
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Ошибка при добавлении клиента: $e'),
+                      backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
               }
             },
-            child: Text("Добавить"),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: const Text("Добавить"),
           ),
         ],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
       );
     },
   );

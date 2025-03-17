@@ -170,6 +170,17 @@ class SoldHistoryNotifier extends StateNotifier<SoldHistoryState> {
       );
     }
   }
+
+  void clearSales() {
+    state = SoldHistoryState(
+      sales: [],
+      isLoading: false,
+      error: null,
+      selectedClientId: null,
+      dateFrom: null,
+      dateTo: null,
+    );
+  }
 }
 
 // Провайдеры репозиториев

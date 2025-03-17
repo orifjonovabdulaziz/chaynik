@@ -55,6 +55,17 @@ class ProductRepository {
     }
   }
 
+  Future<bool> deleteAllProducts() async {
+    try {
+        // Удаляем продукт из локальной базы данных
+        await _productDb.deleteAllProducts();
+      return true;
+    } catch (e) {
+      print("Ошибка в репозитории при удалении продукта: $e");
+      throw e; // Пробрасываем ошибку дальше для обработки в UI
+    }
+  }
+
 
   Future<bool> updateProduct(int productId, {
     String? title,
@@ -104,6 +115,36 @@ class ProductRepository {
           print("❌ Ошибка: Недостаточно товара на складе");
           return false;
         }
+
+        // Обновляем количество в локальной БД
+        await _productDb.updateProduct(
+          productId,
+          quantity: newQuantity,
+        );
+
+        print("✅ Количество товара успешно уменьшено на $quantity. Новое количество: $newQuantity");
+        return true;
+      }
+
+      print("❌ Товар с ID $productId не найден в локальной базе данных");
+      return false;
+
+    } catch (e) {
+      print("❌ Ошибка при уменьшении количества товара: $e");
+      return false;
+    }
+  }
+
+  Future<bool> increaseProductQuantity(int productId, int quantity) async {
+    try {
+      // Получаем текущий продукт из локальной БД
+      final Product? currentProduct = await _productDb.getProductById(productId);
+
+      if (currentProduct != null) {
+        // Вычисляем новое количество
+        final int newQuantity = currentProduct.quantity + quantity;
+
+
 
         // Обновляем количество в локальной БД
         await _productDb.updateProduct(

@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class SoldItem {
   final int id;
   final int product;
@@ -17,6 +19,36 @@ class SoldItem {
     this.updatedAt,
   });
 
+  // Геттер для общей суммы товара
+  double get totalPrice => price * quantity;
+
+  // Геттер для форматированной цены
+  String get formattedPrice {
+    final formatter = NumberFormat('#,##0', 'ru_RU');
+    return formatter.format(price);
+  }
+
+  // Геттер для форматированной общей суммы
+  String get formattedTotalPrice {
+    final formatter = NumberFormat('#,##0', 'ru_RU');
+    return formatter.format(totalPrice);
+  }
+
+  // Геттеры для форматированных дат
+  String get formattedCreatedAt {
+    if (createdAt == null) return '';
+    String dateTimeWithoutTimezone = createdAt!.substring(0, 19);
+    DateTime dateTime = DateTime.parse(dateTimeWithoutTimezone);
+    return DateFormat('dd.MM.yyyy HH:mm').format(dateTime);
+  }
+
+  String get formattedUpdatedAt {
+    if (updatedAt == null) return '';
+    String dateTimeWithoutTimezone = updatedAt!.substring(0, 19);
+    DateTime dateTime = DateTime.parse(dateTimeWithoutTimezone);
+    return DateFormat('dd.MM.yyyy HH:mm').format(dateTime);
+  }
+
   factory SoldItem.fromJson(Map<String, dynamic> json) {
     return SoldItem(
       id: json['id'] ?? 0,
@@ -30,6 +62,7 @@ class SoldItem {
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'product': product,
     'quantity': quantity,
     'price': price.toString(),
@@ -37,6 +70,27 @@ class SoldItem {
     if (createdAt != null) 'created_at': createdAt,
     if (updatedAt != null) 'updated_at': updatedAt,
   };
+
+  // Метод для создания копии с изменениями
+  SoldItem copyWith({
+    int? id,
+    int? product,
+    int? quantity,
+    double? price,
+    String? priceSum,
+    String? createdAt,
+    String? updatedAt,
+  }) {
+    return SoldItem(
+      id: id ?? this.id,
+      product: product ?? this.product,
+      quantity: quantity ?? this.quantity,
+      price: price ?? this.price,
+      priceSum: priceSum ?? this.priceSum,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
 
 class Sold {
@@ -60,6 +114,47 @@ class Sold {
     this.debt,
   });
 
+  // Геттер для общего количества товаров
+  int get totalQuantity {
+    return outcome.fold(0, (sum, item) => sum + item.quantity);
+  }
+
+  // Геттер для общей суммы продажи
+  double get totalAmount {
+    return outcome.fold(0.0, (sum, item) => sum + item.totalPrice);
+  }
+
+  // Геттеры для форматированных сумм
+  String get formattedPaid {
+    final formatter = NumberFormat('#,##0', 'ru_RU');
+    return formatter.format(paid);
+  }
+
+  String get formattedTotal {
+    final formatter = NumberFormat('#,##0', 'ru_RU');
+    return formatter.format(total ?? 0.0);
+  }
+
+  String get formattedDebt {
+    final formatter = NumberFormat('#,##0', 'ru_RU');
+    return formatter.format(debt ?? 0.0);
+  }
+
+  // Геттеры для форматированных дат
+  String get formattedCreatedAt {
+    if (createdAt == null) return '';
+    String dateTimeWithoutTimezone = createdAt!.substring(0, 19);
+    DateTime dateTime = DateTime.parse(dateTimeWithoutTimezone);
+    return DateFormat('dd.MM.yyyy HH:mm').format(dateTime);
+  }
+
+  String get formattedUpdatedAt {
+    if (updatedAt == null) return '';
+    String dateTimeWithoutTimezone = updatedAt!.substring(0, 19);
+    DateTime dateTime = DateTime.parse(dateTimeWithoutTimezone);
+    return DateFormat('dd.MM.yyyy HH:mm').format(dateTime);
+  }
+
   factory Sold.fromJson(Map<String, dynamic> json) {
     return Sold(
       id: json['id'] ?? 0,
@@ -76,6 +171,7 @@ class Sold {
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'client': client,
     'paid': paid.toString(),
     'outcome': outcome.map((item) => item.toJson()).toList(),
@@ -85,25 +181,26 @@ class Sold {
     if (debt != null) 'debt': debt.toString(),
   };
 
-  // Вспомогательный метод для форматирования даты
-  String get formattedDate {
-    if (createdAt == null) return '';
-    try {
-      final date = DateTime.parse(createdAt!);
-      return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
-    } catch (e) {
-      return '';
-    }
-  }
-
-  // Вспомогательный метод для форматирования времени
-  String get formattedTime {
-    if (createdAt == null) return '';
-    try {
-      final date = DateTime.parse(createdAt!);
-      return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      return '';
-    }
+  // Метод для создания копии с изменениями
+  Sold copyWith({
+    int? id,
+    int? client,
+    double? paid,
+    List<SoldItem>? outcome,
+    String? createdAt,
+    String? updatedAt,
+    double? total,
+    double? debt,
+  }) {
+    return Sold(
+      id: id ?? this.id,
+      client: client ?? this.client,
+      paid: paid ?? this.paid,
+      outcome: outcome ?? this.outcome,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      total: total ?? this.total,
+      debt: debt ?? this.debt,
+    );
   }
 }

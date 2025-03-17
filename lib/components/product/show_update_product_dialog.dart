@@ -1,226 +1,338 @@
 import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-
 import '../../models/product.dart';
 import '../../provider/category_provider.dart';
 import '../../provider/product_provider.dart';
 import '../category/AddCategoryDialog.dart';
+import '../../theme/app_colors.dart';
 
-void showUpdateProductDialog(
-    BuildContext context, WidgetRef ref, Product product) {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+class UpdateProductDialog extends ConsumerStatefulWidget {
+  final Product product;
 
-  // Контроллеры для текстовых полей
-  final TextEditingController _titleController =
-      TextEditingController(text: product.title);
-  final TextEditingController _priceController =
-      TextEditingController(text: product.price.toString());
+  const UpdateProductDialog({
+    Key? key,
+    required this.product,
+  }) : super(key: key);
 
-  String? _selectedCategory = product.categoryId.toString();
-  String? _imagePath; // Для обновления изображения
+  @override
+  ConsumerState<UpdateProductDialog> createState() => _UpdateProductDialogState();
+}
 
+class _UpdateProductDialogState extends ConsumerState<UpdateProductDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
+  final _priceController = TextEditingController();
+  final _picker = ImagePicker();
+
+  String? _selectedCategory;
   File? _image;
-  final ImagePicker _picker = ImagePicker();
+  bool _isLoading = false;
+  bool _hasChanges = false;
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Consumer(builder: (context, ref, _) {
+  @override
+  void initState() {
+    super.initState();
+    _titleController.text = widget.product.title;
+    _priceController.text = widget.product.price.toString();
+    _selectedCategory = widget.product.categoryId.toString();
+
+    _titleController.addListener(_checkChanges);
+    _priceController.addListener(_checkChanges);
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _priceController.dispose();
+    super.dispose();
+  }
+
+  void _checkChanges() {
+    final hasChanges = _titleController.text != widget.product.title ||
+        _priceController.text != widget.product.price.toString() ||
+        _selectedCategory != widget.product.categoryId.toString() ||
+        _image != null;
+
+    if (hasChanges != _hasChanges) {
+      setState(() => _hasChanges = hasChanges);
+    }
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      if (!await _requestStoragePermission()) {
+        _showError('Нет разрешения на доступ к галерее');
+        return;
+      }
+
+      final pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 1200,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _image = File(pickedFile.path);
+          _hasChanges = true;
+        });
+      }
+    } catch (e) {
+      _showError('Ошибка при выборе изображения');
+    }
+  }
+
+  Future<bool> _requestStoragePermission() async {
+    final status = await Permission.manageExternalStorage.request();
+    if (status.isGranted) return true;
+    if (status.isDenied) {
+      final storageStatus = await Permission.storage.request();
+      return storageStatus.isGranted;
+    }
+    if (status.isPermanentlyDenied) {
+      openAppSettings();
+    }
+    return false;
+  }
+
+  Future<void> _updateProduct() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedCategory == null) {
+      _showError('Выберите категорию');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await ref.read(productProvider.notifier).updateProduct(
+        widget.product.id,
+        title: _titleController.text.trim(),
+        price: double.parse(_priceController.text),
+        category: int.parse(_selectedCategory!),
+        image: _image?.path,
+      );
+
+      if (mounted) {
+        Navigator.of(context).pop();
+        _showSuccess('Продукт "${_titleController.text}" обновлён');
+      }
+    } catch (e) {
+      _showError('Ошибка при обновлении продукта');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text(
+        'Редактирование продукта',
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      ),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildTitleField(),
+              const SizedBox(height: 16),
+              _buildPriceField(),
+              const SizedBox(height: 16),
+              _buildCategoryDropdown(),
+              const SizedBox(height: 16),
+              _buildImagePicker(),
+              if (_isLoading) ...[
+                const SizedBox(height: 16),
+                const Center(child: CircularProgressIndicator()),
+              ],
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+          child: Text(
+            'Отмена',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: _isLoading || !_hasChanges ? null : _updateProduct,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+          ),
+          child: _isLoading
+              ? const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          )
+              : const Text('Сохранить'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTitleField() {
+    return TextFormField(
+      controller: _titleController,
+      decoration: InputDecoration(
+        labelText: 'Название товара',
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        prefixIcon: const Icon(Icons.shopping_bag),
+      ),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Введите название товара';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPriceField() {
+    return TextFormField(
+      controller: _priceController,
+      decoration: InputDecoration(
+        labelText: 'Цена товара',
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        prefixIcon: const Icon(Icons.attach_money),
+      ),
+      keyboardType: TextInputType.number,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Введите цену';
+        }
+        if (double.tryParse(value) == null) {
+          return 'Введите корректное число';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildCategoryDropdown() {
+    return Consumer(
+      builder: (context, ref, _) {
         final categoriesAsync = ref.watch(categoryProvider);
 
-        return StatefulBuilder(
-          builder: (context, setState) {
-            Future<bool> _requestStoragePermission() async {
-              var status = await Permission.manageExternalStorage.request();
+        return categoriesAsync.when(
+          data: (categories) => DropdownButtonFormField<String>(
+            value: _selectedCategory,
+            decoration: InputDecoration(
+              labelText: 'Категория',
 
-              if (status.isGranted) {
-                return true; // Разрешение уже предоставлено
-              } else if (status.isDenied) {
-                status = await Permission.storage.request();
-                return status.isGranted;
-              } else if (status.isPermanentlyDenied) {
-                print(
-                    "Разрешение навсегда отклонено, откройте настройки приложения.");
-                openAppSettings();
-                return false;
-              }
-
-              return false;
-            }
-
-            Future<void> _pickImage() async {
-              // Запрашиваем разрешения
-              if (await _requestStoragePermission()) {
-                final pickedFile =
-                    await _picker.pickImage(source: ImageSource.gallery);
-                if (pickedFile != null) {
-                  setState(() {
-                    _image = File(pickedFile.path);
-                  });
-                }
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              prefixIcon: const Icon(Icons.category),
+            ),
+            isExpanded: true,
+            menuMaxHeight: 300,
+            items: [
+              ...categories.map((category) => DropdownMenuItem(
+                value: category.id.toString(),
+                child: Text(category.title, overflow: TextOverflow.ellipsis,),
+              )),
+              const DropdownMenuItem(
+                value: 'add_category',
+                child: Row(
+                  children: [
+                    Icon(Icons.add, size: 16, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Text(
+                      'Добавить категорию',
+                      style: TextStyle(color: Colors.blue),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            onChanged: (value) {
+              if (value == 'add_category') {
+                showAddCategoryDialog(context, ref);
               } else {
-                print("Нет разрешения на доступ к галерее");
+                setState(() {
+                  _selectedCategory = value;
+                  _hasChanges = true;
+                });
               }
-            }
-
-            return AlertDialog(
-              title: const Text(
-                'Редактирование продукта',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              content: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextFormField(
-                        controller: _titleController,
-                        decoration: InputDecoration(
-                          labelText: "Название товара",
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Введите название";
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _priceController,
-                        decoration: InputDecoration(
-                          labelText: "Цена товара",
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Введите цену";
-                          }
-                          if (double.tryParse(value) == null) {
-                            return "Введите корректное число";
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Категория (Dropdown)
-                      categoriesAsync.when(
-                        data: (categories) => DropdownButton<String>(
-                          value: _selectedCategory,
-                          hint: Text("Выберите категорию"),
-                          items: [
-                            ...categories
-                                .map((category) => DropdownMenuItem<String>(
-                                      value: category.id.toString(),
-                                      child: Text(category.title),
-                                    )),
-                            DropdownMenuItem<String>(
-                              value: "add_category",
-                              child: Text(
-                                "➕ Добавить категорию",
-                                style: TextStyle(color: Colors.blue),
-                              ),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            if (value == "add_category") {
-                              showAddCategoryDialog(context, ref);
-                            } else {
-                              setState(() {
-                                _selectedCategory =
-                                    value; // 🔹 Обновляем выбранную категорию
-                              });
-                            }
-                          },
-                        ),
-                        loading: () =>
-                            Center(child: CircularProgressIndicator()),
-                        error: (error, stack) =>
-                            Text('Ошибка загрузки категорий: $error'),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Выбор изображения
-                      _image != null
-                          ? GestureDetector(
-                              onTap: _pickImage,
-                              child: Image.file(_image!,
-                                  height: 200, width: 200, fit: BoxFit.cover),
-                            )
-                          : GestureDetector(
-                              onTap: _pickImage,
-                              child: CachedNetworkImage(
-                                imageUrl: product.imageUrl,
-                                width: 200,
-                                height: 200,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => Container(
-                                  color: Colors.grey[200],
-                                  child: const Center(child: CircularProgressIndicator()),
-
-
-                              ),
-                      ),),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(
-                    'Отмена',
-                    style: TextStyle(
-                        color: Colors.grey, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      ref.read(productProvider.notifier).updateProduct(
-                            product.id,
-                            title: _titleController.text,
-                            price: double.parse(_priceController.text),
-                            category: int.parse(_selectedCategory!),
-                            image: _image?.path, // Если не меняли, останется null
-                          );
-                      Navigator.of(context).pop();
-
-                      // Показываем снекбар
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'Продукт "${_titleController.text}" обновлён'),
-                          backgroundColor: Colors.green,
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  },
-                  child: const Text(
-                    'Сохранить',
-                    style: TextStyle(
-                        color: Colors.blue, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            );
-          },
+            },
+          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Text('Ошибка: $error'),
         );
-      });
-    },
+      },
+    );
+  }
+
+  Widget _buildImagePicker() {
+    return GestureDetector(
+      onTap: _pickImage,
+      child: Container(
+        height: 200,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: _image != null
+            ? ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.file(_image!, fit: BoxFit.cover),
+        )
+            : CachedNetworkImage(
+          imageUrl: widget.product.imageUrl,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+          errorWidget: (context, url, error) => const Center(
+            child: Icon(Icons.error),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+void showUpdateProductDialog(BuildContext context, WidgetRef ref, Product product) {
+  showDialog(
+    context: context,
+    builder: (_) => UpdateProductDialog(product: product),
   );
 }

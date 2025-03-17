@@ -172,7 +172,6 @@ class MarketNotifier extends StateNotifier<MarketState> {
   Future<void> clearAllData() async {
     try {
       state = state.copyWith(isLoading: true, error: null);
-      await _repository.clearAllData();
       state = state.copyWith(
         markets: [],
         selectedMarket: null,

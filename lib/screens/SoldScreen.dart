@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../components/sell/client_bottomsheet.dart';
 import '../components/sell/pay_bottomsheet.dart';
@@ -107,7 +108,7 @@ class SoldScreen extends ConsumerWidget {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            '${product.quantity} шт × ${product.price} UZS',
+                                            '${product.quantity} шт × ${NumberFormat('#,##0', 'en_EN').format(product.price)} UZS',
                                             style: TextStyle(
                                               color: Colors.grey[600],
                                             ),
@@ -117,7 +118,7 @@ class SoldScreen extends ConsumerWidget {
                                       ),
                                     ),
                                     Text(
-                                      '${product.total} UZS',
+                                      '${NumberFormat('#,##0', 'en_EN').format(product.total)} UZS',
                                       style: const TextStyle(
                                         fontSize: 17,
                                         fontWeight: FontWeight.bold,

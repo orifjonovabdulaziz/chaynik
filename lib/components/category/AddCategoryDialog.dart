@@ -1,54 +1,110 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../provider/category_provider.dart';
-import '../../repositories/category_repository.dart';
 
 void showAddCategoryDialog(BuildContext context, WidgetRef ref) {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  String _category_name = '';
+  final formKey = GlobalKey<FormState>();
+  String categoryName = '';
 
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text("Добавить категорию"),
-        content: Form(
-          key: _formKey,
-          child: TextFormField(
-            decoration: InputDecoration(labelText: "Название категории"),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Please enter some text";
-              }
-              return null;
-            },
-            onSaved: (value) {
-              _category_name = value ?? '';
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => context.pop(),
-            child: Text("Отмена"),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
-                await ref
-                    .read(categoryProvider.notifier)
-                    .addCategory(_category_name);
-                print("Категория: $_category_name");
+      return StatefulBuilder(
+        builder: (context, setState) {
+          // Определяем переменную isLoading внутри StatefulBuilder
+          bool isLoading = false;
+
+          Future<void> submitForm() async {
+            if (!formKey.currentState!.validate()) return;
+
+            setState(() => isLoading = true);
+
+            try {
+              formKey.currentState!.save();
+              await ref.read(categoryProvider.notifier).addCategory(categoryName);
+
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Категория "$categoryName" успешно добавлена'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
                 context.pop();
               }
-            },
-            child: Text("Добавить"),
-          ),
-        ],
+            } catch (e) {
+              if (context.mounted) {
+                setState(() => isLoading = false);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Ошибка при добавлении категории: ${e.toString()}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            }
+          }
+
+          return AlertDialog(
+            title: const Text("Добавить категорию"),
+            content: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      labelText: "Название категории",
+                      hintText: "Введите название категории",
+                      prefixIcon: Icon(Icons.category),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Введите название категории";
+                      }
+                      if (value.length < 2) {
+                        return "Название должно содержать минимум 2 символа";
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      categoryName = value?.trim() ?? '';
+                    },
+                    enabled: !isLoading,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) {
+                      if (!isLoading) {
+                        submitForm();
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: isLoading ? null : () => context.pop(),
+                child: const Text("Отмена"),
+              ),
+              ElevatedButton(
+                onPressed: isLoading ? null : submitForm,
+                child: isLoading
+                    ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
+                )
+                    : const Text("Добавить"),
+              ),
+            ],
+          );
+        },
       );
     },
   );

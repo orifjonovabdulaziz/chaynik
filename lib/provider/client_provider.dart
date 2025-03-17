@@ -1,14 +1,36 @@
 import 'package:chaynik/repositories/client_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../models/client.dart';
+
+// Провайдер для поискового запроса
+final searchQueryProvider = StateProvider<String>((ref) => '');
+
+// Провайдер для отфильтрованных клиентов
+final filteredClientsProvider = Provider<AsyncValue<List<Client>>>((ref) {
+  final clients = ref.watch(clientProvider);
+  final searchQuery = ref.watch(searchQueryProvider).toLowerCase();
+
+  return clients.when(
+    loading: () => const AsyncValue.loading(),
+    error: (error, stack) => AsyncValue.error(error, stack),
+    data: (clients) {
+      if (searchQuery.isEmpty) return AsyncValue.data(clients);
+
+      final filteredClients = clients.where((client) {
+        return client.full_name.toLowerCase().contains(searchQuery);
+      }).toList();
+
+      return AsyncValue.data(filteredClients);
+    },
+  );
+});
 
 final clientProvider = StateNotifierProvider<ClientNotifier, AsyncValue<List<Client>>>(
       (ref) => ClientNotifier(ClientRepository()),
 );
 
 class ClientNotifier extends StateNotifier<AsyncValue<List<Client>>> {
-  late final ClientRepository _repository;
+  final ClientRepository _repository;
 
   ClientNotifier(this._repository) : super(const AsyncValue.loading()) {
     fetchClients();
@@ -25,17 +47,22 @@ class ClientNotifier extends StateNotifier<AsyncValue<List<Client>>> {
   }
 
   Future<void> addClient(String fullName, String content, double debt) async {
-    bool success = await _repository.addClient(fullName, content, debt);
-    if (success) {
-      fetchClients(); // Перезагружаем список после добавления
+    try {
+      bool success = await _repository.addClient(fullName, content, debt);
+      if (success) {
+        fetchClients();
+      }
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
     }
   }
 
   Future<void> deleteClient(int id) async {
     try {
       await _repository.deleteClient(id);
-      fetchClients(); // Перезагружаем список после удаления
+      fetchClients();
     } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
       print('Ошибка при удалении клиента: $e');
     }
   }
@@ -58,10 +85,20 @@ class ClientNotifier extends StateNotifier<AsyncValue<List<Client>>> {
       );
 
       if (success) {
-        fetchClients(); // Перезагружаем список клиентов после обновления
+        fetchClients();
       }
     } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
       print('Ошибка при обновлении клиента: $e');
+    }
+  }
+
+  Future<void> clearAllClientsData() async {
+    try {
+      state = const AsyncValue.data([]);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+      print('Ошибка при очистке данных клиентов: $e');
     }
   }
 }

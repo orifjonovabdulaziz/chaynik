@@ -96,6 +96,8 @@ class SoldNotifier extends StateNotifier<SaleState> {
   void clear() {
     state = SaleState();
   }
+
+
 }
 
 final soldProvider = StateNotifierProvider<SoldNotifier, SaleState>((ref) {

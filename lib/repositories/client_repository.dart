@@ -74,6 +74,19 @@ class ClientRepository {
     }
   }
 
+
+  Future<bool> deleteAllClients() async {
+    try {
+        // Удаляем клиента из локальной базы данных
+        await _clientDb.deleteAllClients();
+        return true;
+
+    } catch (e) {
+      print("Ошибка в репозитории при удалении клиента: $e");
+      throw e; // Пробрасываем ошибку дальше для обработки в UI
+    }
+  }
+
   Future<bool> updateClient(int clientId, {
     String? fullName,
     String? content,

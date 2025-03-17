@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../models/category.dart';
 import '../../provider/category_provider.dart';
@@ -161,7 +162,7 @@ class _ProductsScreenState extends ConsumerState<AddProductSellScreen> {
                 if (products.isNotEmpty) ...[
                   const SizedBox(width: 8),
                   Text(
-                    '${totalAmount.toStringAsFixed(2)} UZS',
+                    '${NumberFormat('#,##0', 'en_EN').format(totalAmount)} UZS',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

@@ -1,40 +1,25 @@
-import 'package:chaynik/repositories/category_repository.dart';
-import 'package:chaynik/repositories/product_repository.dart';
-import 'package:chaynik/repositories/sold_repository.dart';
 
-import '../dio/db/category_db.dart';
-import '../dio/db/client_db.dart';
-import '../dio/db/product_db.dart';
-import '../dio/db/sold_db.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+
 import '../dio/services/auth_service.dart';
-import '../dio/services/category_service.dart';
-import '../dio/services/product_service.dart';
-import '../dio/services/shared_prefs_service.dart';
-import 'client_repository.dart';
+
+import 'load_data_repository.dart';
 
 class AuthRepository {
-  final ProductRepository _productRepository = ProductRepository();
-  final ProductDatabase _productDb = ProductDatabase.instance;
 
-  final CategoryRepository _categoryRepository = CategoryRepository();
-  final CategoryDatabase _categoryDatabase = CategoryDatabase.instance;
-
-  final ClientRepository _clientRepository = ClientRepository();
-  final ClientDatabase _clientDb = ClientDatabase.instance;
-
-  final SoldRepository _soldRepository = SoldRepository();
-  final SoldDatabase _soldDb = SoldDatabase.instance;
 
   final AuthService _authService = AuthService();
+  final loadDataRepository = LoadDataRepository(ProviderContainer());
 
   Future<String?> login(String email, String password) async {
     try{
       String? token = await _authService.login(email, password);
       if (token != null) {
-        await _productRepository.getProductsFromServerAndSave();
-        await _categoryRepository.getCategoriesFromServerAndSave();
-        await _clientRepository.getClientsFromServerAndSave();
-        await _soldRepository.syncWithServer();
+
+
+        // Загружаем все данные
+        await loadDataRepository.loadAllData();
         return token;
       }
     }catch(e){
@@ -51,11 +36,7 @@ class AuthRepository {
       rethrow;
     }
     finally{
-      await _productDb.deleteAllProducts();
-      await _categoryDatabase.deleteAllCategories();
-      await _clientDb.deleteAllClients();
-      await _soldDb.deleteAllSolds();
-      await SharedPrefsService.removeToken();
+      await loadDataRepository.clearAllData();
     }
   }
 

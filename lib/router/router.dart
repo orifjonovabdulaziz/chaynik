@@ -2,6 +2,7 @@ import 'package:chaynik/components/income/AddProductIncomeScreen.dart';
 import 'package:chaynik/components/sell/AddProductSellScreen.dart';
 import 'package:chaynik/screens/Categories.dart';
 import 'package:chaynik/screens/ClientsScreen.dart';
+import 'package:chaynik/screens/IncomeHistoryScreen.dart';
 import 'package:chaynik/screens/IncomeScreen.dart';
 import 'package:chaynik/screens/MarketScreen.dart';
 import 'package:chaynik/screens/SoldHistoryScreen.dart';
@@ -65,6 +66,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/soldhistory',
         name: 'soldhistory',
         builder: (context, state) => SoldHistoryScreen(),
+      ),
+      GoRoute(
+        path: '/incomehistory',
+        name: 'incomehistory',
+        builder: (context, state) => IncomeHistoryScreen(),
       ),
       GoRoute(
         path: '/addproducttosell',

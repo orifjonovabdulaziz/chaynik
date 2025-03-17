@@ -87,6 +87,14 @@ class AppDrawer extends ConsumerWidget {
             },
           ),
           ListTile(
+            leading: Icon(Icons.history),
+            title: Text("История Приходов"),
+            onTap: () {
+              context.go("/incomehistory");
+              Navigator.pop(context); // Закрываем drawer после нажатия
+            },
+          ),
+          ListTile(
             leading: Icon(Icons.store),
             title: Text("Uzum"),
             onTap: () {

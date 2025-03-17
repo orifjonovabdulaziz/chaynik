@@ -20,45 +20,128 @@ class IncomeDatabase {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // Увеличена версия базы данных
       onCreate: _createDB,
+      onUpgrade: _onUpgrade,
     );
   }
 
+  // Обработчик обновления базы данных
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Создаем временную таблицу с новой схемой
+      await db.execute('''
+        CREATE TABLE income_items_temp (
+          id INTEGER PRIMARY KEY,
+          income_id INTEGER NOT NULL,
+          product INTEGER NULL,
+          quantity INTEGER NOT NULL,
+          price TEXT NOT NULL,
+          price_sum TEXT,
+          FOREIGN KEY (income_id) REFERENCES incomes (id) ON DELETE CASCADE
+        )
+      ''');
+
+      // Копируем данные
+      await db.execute('''
+        INSERT INTO income_items_temp 
+        SELECT * FROM income_items
+      ''');
+
+      // Удаляем старую таблицу
+      await db.execute('DROP TABLE income_items');
+
+      // Переименовываем временную таблицу
+      await db.execute('ALTER TABLE income_items_temp RENAME TO income_items');
+    }
+  }
+
   Future<void> _createDB(Database db, int version) async {
+    // Создаем таблицу для приходов
     await db.execute('''
       CREATE TABLE incomes (
         id INTEGER PRIMARY KEY,
-        quantity INTEGER NOT NULL,
-        price REAL NOT NULL,
-        product INTEGER NOT NULL,
-        price_sum TEXT,
         created_at TEXT,
         updated_at TEXT
       )
     ''');
+
+    // Создаем таблицу для элементов прихода с NULL для product
+    await db.execute('''
+      CREATE TABLE income_items (
+        id INTEGER PRIMARY KEY,
+        income_id INTEGER NOT NULL,
+        product INTEGER NULL,
+        quantity INTEGER NOT NULL,
+        price TEXT NOT NULL,
+        price_sum TEXT,
+        FOREIGN KEY (income_id) REFERENCES incomes (id) ON DELETE CASCADE
+      )
+    ''');
   }
 
-  // Получить все приходы
+  // Получить все приходы с их элементами
   Future<List<Income>> getIncomes() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('incomes');
-    return List.generate(maps.length, (i) => Income.fromJson(maps[i]));
+    final List<Map<String, dynamic>> incomeMaps = await db.query('incomes');
+
+    List<Income> incomes = [];
+    for (var incomeMap in incomeMaps) {
+      final List<Map<String, dynamic>> itemMaps = await db.query(
+        'income_items',
+        where: 'income_id = ?',
+        whereArgs: [incomeMap['id']],
+      );
+
+      final items = itemMaps.map((item) => IncomeItem(
+        id: item['id'],
+        product: item['product'], // Теперь может быть null
+        quantity: item['quantity'],
+        price: item['price'],
+        priceSum: item['price_sum'],
+      )).toList();
+
+      incomes.add(Income(
+        id: incomeMap['id'],
+        items: items,
+        createdAt: incomeMap['created_at'],
+        updatedAt: incomeMap['updated_at'],
+      ));
+    }
+    return incomes;
   }
 
   // Получить приход по ID
   Future<Income?> getIncomeById(int id) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
+    final List<Map<String, dynamic>> incomeMaps = await db.query(
       'incomes',
       where: 'id = ?',
       whereArgs: [id],
     );
 
-    if (maps.isNotEmpty) {
-      return Income.fromJson(maps.first);
-    }
-    return null;
+    if (incomeMaps.isEmpty) return null;
+
+    final List<Map<String, dynamic>> itemMaps = await db.query(
+      'income_items',
+      where: 'income_id = ?',
+      whereArgs: [id],
+    );
+
+    final items = itemMaps.map((item) => IncomeItem(
+      id: item['id'],
+      product: item['product'], // Теперь может быть null
+      quantity: item['quantity'],
+      price: item['price'],
+      priceSum: item['price_sum'],
+    )).toList();
+
+    return Income(
+      id: incomeMaps.first['id'],
+      items: items,
+      createdAt: incomeMaps.first['created_at'],
+      updatedAt: incomeMaps.first['updated_at'],
+    );
   }
 
   // Добавить список приходов
@@ -67,70 +150,80 @@ class IncomeDatabase {
 
     await db.transaction((txn) async {
       for (var income in incomes) {
-        await txn.insert(
+        final incomeId = await txn.insert(
           'incomes',
           {
-            'id': income.id,
-            'quantity': income.quantity,
-            'price': income.price,
-            'product': income.product,
-            'price_sum': income.priceSum,
+            if (income.id != null) 'id': income.id,
             'created_at': income.createdAt,
             'updated_at': income.updatedAt,
           },
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
+
+        for (var item in income.items) {
+          await txn.insert(
+            'income_items',
+            {
+              if (item.id != null) 'id': item.id,
+              'income_id': income.id ?? incomeId,
+              'product': item.product, // Может быть null
+              'quantity': item.quantity,
+              'price': item.price,
+              'price_sum': item.priceSum,
+            },
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
       }
     });
   }
 
-  // Обновить приход
-  Future<void> updateIncome(Income income) async {
-    final db = await database;
-
-    await db.update(
-      'incomes',
-      {
-        'quantity': income.quantity,
-        'price': income.price,
-        'product': income.product,
-        'price_sum': income.priceSum,
-        'created_at': income.createdAt,
-        'updated_at': income.updatedAt,
-      },
-      where: 'id = ?',
-      whereArgs: [income.id],
-    );
-  }
-
-  // Удалить приход
+  // Остальные методы остаются без изменений...
   Future<void> deleteIncome(int id) async {
     final db = await database;
-    await db.delete(
-      'incomes',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    await db.transaction((txn) async {
+      await txn.delete(
+        'income_items',
+        where: 'income_id = ?',
+        whereArgs: [id],
+      );
+      await txn.delete(
+        'incomes',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    });
   }
 
-  // Удалить все приходы
   Future<void> deleteAllIncomes() async {
     final db = await database;
-    await db.delete('incomes');
+    await db.transaction((txn) async {
+      await txn.delete('income_items');
+      await txn.delete('incomes');
+    });
   }
 
-  // Получить приходы по ID продукта
   Future<List<Income>> getIncomesByProductId(int productId) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'incomes',
+    final List<Map<String, dynamic>> itemMaps = await db.query(
+      'income_items',
       where: 'product = ?',
       whereArgs: [productId],
     );
-    return List.generate(maps.length, (i) => Income.fromJson(maps[i]));
+
+    Set<int> incomeIds = itemMaps.map((item) => item['income_id'] as int).toSet();
+    List<Income> incomes = [];
+
+    for (var incomeId in incomeIds) {
+      final income = await getIncomeById(incomeId);
+      if (income != null) {
+        incomes.add(income);
+      }
+    }
+
+    return incomes;
   }
 
-  // Закрыть базу данных
   Future<void> close() async {
     final db = await database;
     db.close();

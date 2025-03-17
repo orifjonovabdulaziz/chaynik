@@ -155,7 +155,7 @@ class _SoldHistoryScreenState extends ConsumerState<SoldHistoryScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${totalSales.toStringAsFixed(2)} UZS',
+                      '${NumberFormat('#,##0', 'en_EN').format(totalSales)} UZS',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -174,7 +174,7 @@ class _SoldHistoryScreenState extends ConsumerState<SoldHistoryScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${totalPaid.toStringAsFixed(2)} UZS',
+                      '${NumberFormat('#,##0', 'en_EN').format(totalPaid)} UZS',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -293,7 +293,7 @@ class _SaleCard extends ConsumerWidget {
                 ),
               ),
               Text(
-                _formatDate(sale.createdAt),
+                sale.formattedCreatedAt,
                 style: TextStyle(
                   color: Colors.grey.shade600,
                   fontSize: 14,
@@ -348,7 +348,7 @@ class _SaleCard extends ConsumerWidget {
                           ),
                         ),
                         Text(
-                          '${item.quantity} шт × ${item.price} UZS',
+                          '${item.quantity} шт × ${NumberFormat('#,##0', 'en_EN').format(item.price)} UZS',
                           style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 13,
@@ -360,7 +360,7 @@ class _SaleCard extends ConsumerWidget {
 
                   // Сумма за товар
                   Text(
-                    '${(item.quantity * (double.tryParse(item.price.toString()) ?? 0)).toStringAsFixed(2)} UZS',
+                    '${NumberFormat('#,##0', 'en_EN').format(item.quantity * (double.tryParse(item.price.toString()) ?? 0))} UZS',
                     style: const TextStyle(
                       fontWeight: FontWeight.w500,
                     ),
@@ -377,14 +377,14 @@ class _SaleCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Итого: ${calculateTotal(sale.outcome).toStringAsFixed(2)} UZS',
+                'Итого: ${NumberFormat('#,##0', 'en_EN').format(calculateTotal(sale.outcome))} UZS',
                 style: const TextStyle(
                   fontWeight: FontWeight.w500,
                   fontSize: 14,
                 ),
               ),
               Text(
-                'Оплачено: ${sale.paid.toStringAsFixed(2)} UZS',
+                'Оплачено: ${NumberFormat('#,##0', 'en_EN').format(sale.paid)} UZS',
                 style: const TextStyle(
                   color: Colors.green,
                   fontWeight: FontWeight.w500,
